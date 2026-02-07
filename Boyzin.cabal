@@ -1,0 +1,33 @@
+cabal-version: 3.14
+name: Boyzin
+version: 0.1.0.0
+build-type: Simple
+
+common warnings
+  ghc-options: -Wall
+
+library
+  import: warnings
+  exposed-modules:
+    Cpu
+    Instructions
+    Types
+
+  build-depends:
+    base ^>=4.21.0.0,
+    microlens,
+    microlens-th,
+    vector,
+
+  hs-source-dirs: lib
+  default-language: GHC2024
+
+executable Boyzin
+  import: warnings
+  main-is: Main.hs
+  build-depends:
+    Boyzin,
+    base ^>=4.21.0.0,
+
+  hs-source-dirs: app
+  default-language: GHC2024
