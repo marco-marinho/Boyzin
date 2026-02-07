@@ -1,8 +1,9 @@
 module Instructions where
 
 import Data.Bits
-import Data.Word (Word8)
+import Data.Word (Word8, Word16)
 import Types
+import Data.Int (Int8)
 
 addc :: Word8 -> Word8 -> Word8 -> (Word8, Word8)
 addc x y c = (result, flags)
@@ -19,6 +20,27 @@ add x y = (result, flags)
     carry = result < x
     half_carry = (x .&. 0xF) + (y .&. 0xF) > 0xF
     flags = flagsToWord8 (result == 0) False half_carry carry
+
+addSigned :: Word16 -> Int8 -> (Word16, Word8)
+addSigned x y = (result, flags)
+  where
+    offset = fromIntegral y :: Word16
+    result = x + offset
+    lowSp = fromIntegral (x .&. 0xFF) :: Word8
+    uE8 = fromIntegral y :: Word8
+    half_carry = (lowSp .&. 0xF) + (uE8 .&. 0xF) > 0xF
+    carry = (fromIntegral lowSp + uE8) > 0xFF
+    flags = flagsToWord8 False False half_carry carry
+
+
+add16 :: Word16 -> Word16 -> Bool -> (Word16, Word8)
+add16 x y zero = (result, flags)
+  where
+    result = x + y
+    half_carry = (x .&. 0x0FFF) + (y .&. 0x0FFF) > 0x0FFF
+    carry = (fromIntegral x + fromIntegral y) > (0xFFFF :: Int)
+    flags = flagsToWord8 zero False half_carry carry
+
 
 and :: Word8 -> Word8 -> Word8
 and x y = x .&. y
