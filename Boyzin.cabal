@@ -12,13 +12,11 @@ library
     Cpu
     Instructions
     Types
-
   build-depends:
     base ^>=4.21.0.0,
     microlens,
     microlens-th,
     vector,
-
   hs-source-dirs: lib
   default-language: GHC2024
 
@@ -28,6 +26,20 @@ executable Boyzin
   build-depends:
     Boyzin,
     base ^>=4.21.0.0,
-
   hs-source-dirs: app
+  default-language: GHC2024
+
+test-suite BoyzinTest
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: Spec.hs
+  other-modules:
+    InstructionsSpec
+  build-depends:
+    base ^>=4.21.0.0,
+    Boyzin,
+    hspec,
+    QuickCheck
+  build-tool-depends: hspec-discover:hspec-discover
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
   default-language: GHC2024

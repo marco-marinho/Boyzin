@@ -5,12 +5,23 @@ import Data.Word (Word8, Word16)
 import Types
 import Data.Int (Int8)
 
+isCarryFrom :: Int -> Word8 -> Word8 -> Bool
+isCarryFrom bitPos x y = (x .&. mask) + (y .&. mask) > mask
+  where
+    mask = (1 `shiftL` (bitPos + 1)) - 1
+
+isCarryFrom16 :: Int -> Word16 -> Word16 -> Bool
+isCarryFrom16 bitPos x y = (x .&. mask) + (y .&. mask) > mask
+  where
+    mask = (1 `shiftL` (bitPos + 1)) - 1
+
 addc :: Word8 -> Word8 -> Word8 -> (Word8, Word8)
 addc x y c = (result, flags)
   where
-    result = x + y + c
-    carry = result < x
-    half_carry = (x .&. 0xF) + (y .&. 0xF) > 0xF
+    fullSum = (fromIntegral x + fromIntegral y + fromIntegral c) :: Int
+    result = fromIntegral fullSum :: Word8
+    carry = fullSum > 0xff
+    half_carry = (fromIntegral (x .&. 0xF) + fromIntegral (y .&. 0xF) + fromIntegral c) > (0xF :: Int)
     flags = flagsToWord8 (result == 0) False half_carry carry
 
 add :: Word8 -> Word8 -> (Word8, Word8)
@@ -18,7 +29,7 @@ add x y = (result, flags)
   where
     result = x + y
     carry = result < x
-    half_carry = (x .&. 0xF) + (y .&. 0xF) > 0xF
+    half_carry = isCarryFrom 3 x y
     flags = flagsToWord8 (result == 0) False half_carry carry
 
 addSigned :: Word16 -> Int8 -> (Word16, Word8)
@@ -28,7 +39,7 @@ addSigned x y = (result, flags)
     result = x + offset
     lowSp = fromIntegral (x .&. 0xFF) :: Word8
     uE8 = fromIntegral y :: Word8
-    half_carry = (lowSp .&. 0xF) + (uE8 .&. 0xF) > 0xF
+    half_carry = isCarryFrom 3 lowSp uE8
     carry = (fromIntegral lowSp + uE8) > 0xFF
     flags = flagsToWord8 False False half_carry carry
 
@@ -37,16 +48,10 @@ add16 :: Word16 -> Word16 -> Bool -> (Word16, Word8)
 add16 x y zero = (result, flags)
   where
     result = x + y
-    half_carry = (x .&. 0x0FFF) + (y .&. 0x0FFF) > 0x0FFF
+    half_carry = isCarryFrom16 11 x y
     carry = (fromIntegral x + fromIntegral y) > (0xFFFF :: Int)
     flags = flagsToWord8 zero False half_carry carry
 
-
-and :: Word8 -> Word8 -> Word8
-and x y = x .&. y
-
-ccf :: Word8 -> Word8
-ccf flags = flags `xor` 0x10
 
 sub :: Word8 -> Word8 -> (Word8, Word8)
 sub x y = (result, flags)
