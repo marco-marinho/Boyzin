@@ -1,12 +1,12 @@
-module Executor where
+module CPU.Executor where
 
+import CPU.Interface
 import Control.Monad.ST
-import CpuUtils
 import Instructions
 import Types
 
-execute :: Cpu s -> Instruction -> ST s ()
-execute cpu instruction = case instruction of
+executeInstruction :: Cpu s -> Instruction -> ST s ()
+executeInstruction cpu instruction = case instruction of
   ADDC_A_R8 target -> do
     (result, flags) <- addc <$> getRegister cpu RegA <*> getRegister cpu target <*> getCarryFlag cpu
     setRegister cpu RegA result

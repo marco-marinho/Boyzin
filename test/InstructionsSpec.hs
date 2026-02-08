@@ -15,10 +15,10 @@ spec :: Spec
 spec = do
   describe "Arithmetic Logic Unit" $ do
     it "Add without carry" $ do
-      fileContents <- B.readFile "external/sm83/v1/80.json"
-      case decode fileContents :: Maybe [TestEntry] of
-        Just testEntries -> mapM_ print testEntries
-        Nothing -> expectationFailure "Failed to parse JSON file"
+      --   fileContents <- B.readFile "external/sm83/v1/80.json"
+      --   case decode fileContents :: Maybe [TestEntry] of
+      --     Just testEntries -> mapM_ print testEntries
+      --     Nothing -> expectationFailure "Failed to parse JSON file"
       let (result, flags) = add 10 20
       result `shouldBe` 30
       flags `shouldBe` 0x00

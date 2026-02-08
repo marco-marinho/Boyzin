@@ -10,12 +10,12 @@ common warnings
 library
   import: warnings
   exposed-modules:
-    Executor
-    Cpu
-    CpuUtils
+    CPU.Executor
+    CPU
+    CPU.Interface
     Instructions
     Types
-    Decoder
+    CPU.Decoder
   build-depends:
     base ^>=4.21.0.0,
     microlens,

@@ -1,14 +1,12 @@
-module Decoder where
+module CPU.Decoder where
 
+import CPU.Interface
 import Control.Monad.ST
-import CpuUtils
-import Data.STRef
-import Lens.Micro ((^.))
 import Types
 
 decodeInstruction :: Cpu s -> ST s Instruction
 decodeInstruction cpu = do
-  pcValue <- readSTRef (cpu ^. pc)
+  pcValue <- getSP cpu
   opcode <- fetchMemory cpu (fromIntegral pcValue)
   case opcode of
     0x80 -> return $ ADD_A_R8 RegB

@@ -2,13 +2,14 @@
 
 module Types where
 
-import Data.Vector.Unboxed.Mutable qualified as MV
+import Data.Int (Int8)
 import Data.STRef
+import Data.Vector.Unboxed.Mutable qualified as MV
 import Data.Word (Word16, Word8)
 import Lens.Micro.TH (makeLenses)
-import Data.Int (Int8)
 
 data Registers = RegA | RegB | RegC | RegD | RegE | RegF | RegH | RegL
+  deriving (Show, Eq, Enum, Bounded)
 
 data Instruction
   = ADDC_A_R8 Registers

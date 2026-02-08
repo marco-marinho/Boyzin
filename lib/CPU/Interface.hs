@@ -1,4 +1,4 @@
-module CpuUtils where
+module CPU.Interface where
 
 import Control.Monad.ST
 import Data.Bits
@@ -52,6 +52,9 @@ setHL cpu = setPair cpu RegH RegL
 setSP :: Cpu s -> Word16 -> ST s ()
 setSP cpu = writeSTRef (cpu ^. sp)
 
+getSP :: Cpu s -> ST s Word16
+getSP cpu = readSTRef (cpu ^. sp)
+
 getZeroFlag :: Cpu s -> ST s Bool
 getZeroFlag cpu = do
   flags <- getRegister cpu RegF
@@ -63,11 +66,4 @@ incPC cpu = do
   writeSTRef (cpu ^. pc) (pcValue + 1)
 
 regIdx :: Registers -> Int
-regIdx RegA = 0
-regIdx RegB = 1
-regIdx RegC = 2
-regIdx RegD = 3
-regIdx RegE = 4
-regIdx RegF = 5
-regIdx RegH = 6
-regIdx RegL = 7
+regIdx = fromEnum
