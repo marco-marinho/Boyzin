@@ -47,3 +47,13 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- addSigned <$> readSP cpu <*> pure val
     setSP cpu result
     setRegister cpu RegF flags
+  SUB_A_R8 target -> do
+    (result, flags) <- sub <$> readRegister cpu RegA <*> readRegister cpu target
+    setRegister cpu RegA result
+    setRegister cpu RegF flags
+  SUB_A_HL -> do
+    hl <- readHL cpu
+    memVal <- readMemory cpu (fromIntegral hl)
+    (result, flags) <- sub <$> readRegister cpu RegA <*> pure memVal
+    setRegister cpu RegA result
+    setRegister cpu RegF flags

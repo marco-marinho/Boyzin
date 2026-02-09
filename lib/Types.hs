@@ -21,6 +21,8 @@ data Instruction
   | ADD_HL_R16 Word16
   | ADD_HL_SP
   | ADD_SP_E8 Int8
+  | SUB_A_R8 Registers
+  | SUB_A_HL
 
 data Cpu s = Cpu
   { _registers :: MV.MVector s Word8,

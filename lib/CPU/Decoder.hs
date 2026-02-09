@@ -25,4 +25,12 @@ decodeInstruction cpu = do
     0x8D -> return $ ADC_A_R8 RegL
     0x8E -> return ADC_A_HL
     0x8F -> return $ ADC_A_R8 RegA
+    0x90 -> return $ SUB_A_R8 RegB
+    0x91 -> return $ SUB_A_R8 RegC
+    0x92 -> return $ SUB_A_R8 RegD
+    0x93 -> return $ SUB_A_R8 RegE
+    0x94 -> return $ SUB_A_R8 RegH
+    0x95 -> return $ SUB_A_R8 RegL
+    0x96 -> return SUB_A_HL
+    0x97 -> return $ SUB_A_R8 RegA
     _ -> error $ "Unknown opcode: " ++ show opcode

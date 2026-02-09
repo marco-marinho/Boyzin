@@ -23,11 +23,9 @@ data ProcessorState = ProcessorState
     f :: Int,
     h :: Int,
     l :: Int,
-    ime :: Maybe Int,
-    ie :: Maybe Int,
     ram :: [(Int, Int)]
   }
-  deriving (Show, Generic)
+  deriving (Show, Generic, Eq)
 
 instance ToJSON ProcessorState
 
@@ -57,12 +55,10 @@ cpuToProcessorState cpu ramAddresses = do
     <*> (fromIntegral <$> readRegister cpu Ty.RegF)
     <*> (fromIntegral <$> readRegister cpu Ty.RegH)
     <*> (fromIntegral <$> readRegister cpu Ty.RegL)
-    <*> pure Nothing
-    <*> pure Nothing
     <*> mapM (\addr -> (fromIntegral addr,) . fromIntegral <$> readMemory cpu addr) ramAddresses
 
 cpuFromProcessorState :: ProcessorState -> Ty.Cpu s -> ST s ()
-cpuFromProcessorState ProcessorState {pc, sp, a, b, c, d, e, f, h, l, ime, ie, ram} cpu = do
+cpuFromProcessorState ProcessorState {pc, sp, a, b, c, d, e, f, h, l, ram} cpu = do
   setPC cpu (fromIntegral pc)
   setSP cpu (fromIntegral sp)
   setRegister cpu Ty.RegA (fromIntegral a)
@@ -82,20 +78,6 @@ runTestEntry TestEntry {initial, final, cycles} = runST $ do
   fetchDecodeExecute cpu
   let addressesToCheck = map fst (ram final)
   cpuToProcessorState cpu addressesToCheck
-
-instance Eq ProcessorState where
-  (==) expected actual =
-    pc actual == pc expected
-      && sp actual == sp expected
-      && a actual == a expected
-      && b actual == b expected
-      && c actual == c expected
-      && d actual == d expected
-      && e actual == e expected
-      && f actual == f expected
-      && h actual == h expected
-      && l actual == l expected
-      && ram actual == ram expected
 
 formatDiff :: ProcessorState -> ProcessorState -> Int -> String
 formatDiff expected actual index =
