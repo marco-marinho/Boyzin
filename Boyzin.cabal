@@ -13,6 +13,7 @@ library
     CPU.Executor
     CPU
     CPU.Interface
+    CPU.Pure
     CPU.Instructions
     Types
     CPU.Decoder
