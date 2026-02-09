@@ -74,3 +74,6 @@ setPC cpu = writeSTRef (cpu ^. pc)
 
 setMemory :: Cpu s -> Int -> Word8 -> ST s ()
 setMemory cpu = MV.write (cpu ^. memory)
+
+setHalted :: Cpu s -> Bool -> ST s ()
+setHalted cpu = writeSTRef (cpu ^. halted)

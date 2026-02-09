@@ -26,3 +26,7 @@ data Instruction
   | OR_A_HL
   | CP_A_R8 Registers
   | CP_A_HL
+  | LD_R8_R8 Registers Registers
+  | LD_R8_HL Registers
+  | LD_HL_R8 Registers
+  | HALT

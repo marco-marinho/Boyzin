@@ -10,6 +10,70 @@ decodeInstruction cpu = do
   pcValue <- readPC cpu
   opcode <- readMemory cpu (fromIntegral pcValue)
   case opcode of
+    0x40 -> return $ LD_R8_R8 RegB RegB
+    0x41 -> return $ LD_R8_R8 RegB RegC
+    0x42 -> return $ LD_R8_R8 RegB RegD
+    0x43 -> return $ LD_R8_R8 RegB RegE
+    0x44 -> return $ LD_R8_R8 RegB RegH
+    0x45 -> return $ LD_R8_R8 RegB RegL
+    0x46 -> return $ LD_R8_HL RegB
+    0x47 -> return $ LD_R8_R8 RegB RegA
+    0x48 -> return $ LD_R8_R8 RegC RegB
+    0x49 -> return $ LD_R8_R8 RegC RegC
+    0x4A -> return $ LD_R8_R8 RegC RegD
+    0x4B -> return $ LD_R8_R8 RegC RegE
+    0x4C -> return $ LD_R8_R8 RegC RegH
+    0x4D -> return $ LD_R8_R8 RegC RegL
+    0x4E -> return $ LD_R8_HL RegC
+    0x4F -> return $ LD_R8_R8 RegC RegA
+    0x50 -> return $ LD_R8_R8 RegD RegB
+    0x51 -> return $ LD_R8_R8 RegD RegC
+    0x52 -> return $ LD_R8_R8 RegD RegD
+    0x53 -> return $ LD_R8_R8 RegD RegE
+    0x54 -> return $ LD_R8_R8 RegD RegH
+    0x55 -> return $ LD_R8_R8 RegD RegL
+    0x56 -> return $ LD_R8_HL RegD
+    0x57 -> return $ LD_R8_R8 RegD RegA
+    0x58 -> return $ LD_R8_R8 RegE RegB
+    0x59 -> return $ LD_R8_R8 RegE RegC
+    0x5A -> return $ LD_R8_R8 RegE RegD
+    0x5B -> return $ LD_R8_R8 RegE RegE
+    0x5C -> return $ LD_R8_R8 RegE RegH
+    0x5D -> return $ LD_R8_R8 RegE RegL
+    0x5E -> return $ LD_R8_HL RegE
+    0x5F -> return $ LD_R8_R8 RegE RegA
+    0x60 -> return $ LD_R8_R8 RegH RegB
+    0x61 -> return $ LD_R8_R8 RegH RegC
+    0x62 -> return $ LD_R8_R8 RegH RegD
+    0x63 -> return $ LD_R8_R8 RegH RegE
+    0x64 -> return $ LD_R8_R8 RegH RegH
+    0x65 -> return $ LD_R8_R8 RegH RegL
+    0x66 -> return $ LD_R8_HL RegH
+    0x67 -> return $ LD_R8_R8 RegH RegA
+    0x68 -> return $ LD_R8_R8 RegL RegB
+    0x69 -> return $ LD_R8_R8 RegL RegC
+    0x6A -> return $ LD_R8_R8 RegL RegD
+    0x6B -> return $ LD_R8_R8 RegL RegE
+    0x6C -> return $ LD_R8_R8 RegL RegH
+    0x6D -> return $ LD_R8_R8 RegL RegL
+    0x6E -> return $ LD_R8_HL RegL
+    0x6F -> return $ LD_R8_R8 RegL RegA
+    0x70 -> return $ LD_HL_R8 RegB
+    0x71 -> return $ LD_HL_R8 RegC
+    0x72 -> return $ LD_HL_R8 RegD
+    0x73 -> return $ LD_HL_R8 RegE
+    0x74 -> return $ LD_HL_R8 RegH
+    0x75 -> return $ LD_HL_R8 RegL
+    0x76 -> return HALT
+    0x77 -> return $ LD_HL_R8 RegA
+    0x78 -> return $ LD_R8_R8 RegA RegB
+    0x79 -> return $ LD_R8_R8 RegA RegC
+    0x7A -> return $ LD_R8_R8 RegA RegD
+    0x7B -> return $ LD_R8_R8 RegA RegE
+    0x7C -> return $ LD_R8_R8 RegA RegH
+    0x7D -> return $ LD_R8_R8 RegA RegL
+    0x7E -> return $ LD_R8_HL RegA
+    0x7F -> return $ LD_R8_R8 RegA RegA
     0x80 -> return $ ADD_A_R8 RegB
     0x81 -> return $ ADD_A_R8 RegC
     0x82 -> return $ ADD_A_R8 RegD

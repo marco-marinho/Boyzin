@@ -14,7 +14,8 @@ data Cpu s = Cpu
   { _registers :: MV.MVector s Word8,
     _memory :: MV.MVector s Word8,
     _pc :: STRef s Word16,
-    _sp :: STRef s Word16
+    _sp :: STRef s Word16,
+    _halted :: STRef s Bool
   }
 
 data FlagsRegister = FlagsRegister

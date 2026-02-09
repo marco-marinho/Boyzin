@@ -106,3 +106,16 @@ executeInstruction cpu instruction = case instruction of
     memVal <- readMemory cpu (fromIntegral hl)
     (_, flags) <- Pure.sub <$> readRegister cpu RegA <*> pure memVal
     setRegister cpu RegF flags
+  LD_R8_R8 dest src -> do
+    val <- readRegister cpu src
+    setRegister cpu dest val
+  LD_R8_HL dest -> do
+    hl <- readHL cpu
+    val <- readMemory cpu (fromIntegral hl)
+    setRegister cpu dest val
+  LD_HL_R8 src -> do
+    hl <- readHL cpu
+    val <- readRegister cpu src
+    setMemory cpu (fromIntegral hl) val
+  HALT -> do
+    setHalted cpu True

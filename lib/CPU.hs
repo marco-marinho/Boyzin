@@ -20,4 +20,5 @@ makeCPU = do
   initMem <- MV.replicate 65536 0
   initPC <- newSTRef 0
   initSP <- newSTRef 0
-  return $ Cpu initRegisters initMem initPC initSP
+  initHalted <- newSTRef False
+  return $ Cpu initRegisters initMem initPC initSP initHalted
