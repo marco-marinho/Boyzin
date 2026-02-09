@@ -28,7 +28,7 @@ readZeroFlag cpu = do
   return $ (flags .&. 0x80) /= 0
 
 readCarryFlag :: Cpu s -> ST s Word8
-readCarryFlag cpu = (.&. 0x10) <$> readRegister cpu RegF
+readCarryFlag cpu = (`shiftR` 4) . (.&. 0x10) <$> readRegister cpu RegF
 
 readMemory :: Cpu s -> Int -> ST s Word8
 readMemory cpu = MV.read (cpu ^. memory)

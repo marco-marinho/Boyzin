@@ -1,12 +1,12 @@
 module CPU (fetchDecodeExecute, makeCPU) where
 
-import CPU.Decoder
-import CPU.Executor
-import CPU.Interface
-import Control.Monad.ST
-import Data.STRef
+import CPU.Decoder (decodeInstruction)
+import CPU.Executor (executeInstruction)
+import CPU.Interface (incPC)
+import Control.Monad.ST (ST)
+import Data.STRef (newSTRef)
 import Data.Vector.Unboxed.Mutable qualified as MV
-import Types
+import Types (Cpu (Cpu))
 
 fetchDecodeExecute :: Cpu s -> ST s ()
 fetchDecodeExecute cpu = do

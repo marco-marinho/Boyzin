@@ -1,9 +1,9 @@
 module CPU.Executor where
 
+import CPU.Instructions
 import CPU.Interface
-import Control.Monad.ST
-import Instructions
-import Types
+import Control.Monad.ST (ST)
+import Types (Cpu, Instruction (..), Registers (..))
 
 executeInstruction :: Cpu s -> Instruction -> ST s ()
 executeInstruction cpu instruction = case instruction of

@@ -1,9 +1,9 @@
-module Instructions where
+module CPU.Instructions where
 
-import Data.Bits
-import Data.Word (Word8, Word16)
-import Types
+import Data.Bits (Bits (shiftL, (.&.), (.|.)))
 import Data.Int (Int8)
+import Data.Word (Word16, Word8)
+import Types (FlagsRegister (FlagsRegister))
 
 isCarryFrom :: Int -> Word8 -> Word8 -> Bool
 isCarryFrom bitPos x y = (x .&. mask) + (y .&. mask) > mask
@@ -43,7 +43,6 @@ addSigned x y = (result, flags)
     carry = (fromIntegral lowSp + uE8) > 0xFF
     flags = flagsToWord8 False False half_carry carry
 
-
 add16 :: Word16 -> Word16 -> Bool -> (Word16, Word8)
 add16 x y zero = (result, flags)
   where
@@ -51,7 +50,6 @@ add16 x y zero = (result, flags)
     half_carry = isCarryFrom16 11 x y
     carry = (fromIntegral x + fromIntegral y) > (0xFFFF :: Int)
     flags = flagsToWord8 zero False half_carry carry
-
 
 sub :: Word8 -> Word8 -> (Word8, Word8)
 sub x y = (result, flags)

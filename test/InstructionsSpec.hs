@@ -5,7 +5,6 @@ import Data.Aeson
 import Data.Bits qualified as Bits
 import Data.ByteString.Lazy qualified as B
 import Data.Word (Word16, Word8)
-import Instructions
 import Test.Hspec
 import TestTools
 import Text.Printf (printf)
