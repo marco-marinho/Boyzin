@@ -7,40 +7,40 @@ import Types
 
 executeInstruction :: Cpu s -> Instruction -> ST s ()
 executeInstruction cpu instruction = case instruction of
-  ADDC_A_R8 target -> do
-    (result, flags) <- addc <$> getRegister cpu RegA <*> getRegister cpu target <*> getCarryFlag cpu
+  ADC_A_R8 target -> do
+    (result, flags) <- addc <$> readRegister cpu RegA <*> readRegister cpu target <*> readCarryFlag cpu
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  ADDC_A_HL -> do
+  ADC_A_HL -> do
     hl <- readHL cpu
-    memVal <- fetchMemory cpu (fromIntegral hl)
-    (result, flags) <- addc <$> getRegister cpu RegA <*> pure memVal <*> getCarryFlag cpu
+    memVal <- readMemory cpu (fromIntegral hl)
+    (result, flags) <- addc <$> readRegister cpu RegA <*> pure memVal <*> readCarryFlag cpu
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  ADDC_A_N8 val -> do
-    (result, flags) <- addc <$> getRegister cpu RegA <*> pure val <*> getCarryFlag cpu
+  ADC_A_N8 val -> do
+    (result, flags) <- addc <$> readRegister cpu RegA <*> pure val <*> readCarryFlag cpu
     setRegister cpu RegA result
     setRegister cpu RegF flags
   ADD_A_R8 target -> do
-    (result, flags) <- add <$> getRegister cpu RegA <*> getRegister cpu target
+    (result, flags) <- add <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
   ADD_A_HL -> do
     hl <- readHL cpu
-    memVal <- fetchMemory cpu (fromIntegral hl)
-    (result, flags) <- add <$> getRegister cpu RegA <*> pure memVal
+    memVal <- readMemory cpu (fromIntegral hl)
+    (result, flags) <- add <$> readRegister cpu RegA <*> pure memVal
     setRegister cpu RegA result
     setRegister cpu RegF flags
   ADD_A_N8 val -> do
-    (result, flags) <- add <$> getRegister cpu RegA <*> pure val
+    (result, flags) <- add <$> readRegister cpu RegA <*> pure val
     setRegister cpu RegA result
     setRegister cpu RegF flags
   ADD_HL_R16 val -> do
-    (result, flags) <- add16 <$> readHL cpu <*> pure val <*> getZeroFlag cpu
+    (result, flags) <- add16 <$> readHL cpu <*> pure val <*> readZeroFlag cpu
     setHL cpu result
     setRegister cpu RegF flags
   ADD_HL_SP -> do
-    (result, flags) <- add16 <$> readHL cpu <*> readSP cpu <*> getZeroFlag cpu
+    (result, flags) <- add16 <$> readHL cpu <*> readSP cpu <*> readZeroFlag cpu
     setHL cpu result
     setRegister cpu RegF flags
   ADD_SP_E8 val -> do

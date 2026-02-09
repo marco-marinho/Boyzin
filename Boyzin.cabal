@@ -44,7 +44,7 @@ test-suite BoyzinTest
   main-is: Spec.hs
   other-modules:
     InstructionsSpec,
-    ProcessorState
+    TestTools
   build-depends:
     base ^>=4.21.0.0,
     Boyzin,

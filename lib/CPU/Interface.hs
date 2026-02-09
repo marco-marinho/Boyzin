@@ -8,28 +8,35 @@ import Data.Word (Word16, Word8)
 import Lens.Micro ((^.))
 import Types
 
-getRegister :: Cpu s -> Registers -> ST s Word8
-getRegister cpu reg = MV.read (cpu ^. registers) (regIdx reg)
-
 addToRegister :: Cpu s -> Registers -> Word8 -> ST s ()
 addToRegister cpu reg val = do
-  currentVal <- getRegister cpu reg
+  currentVal <- readRegister cpu reg
   let newVal = currentVal + val
   MV.write (cpu ^. registers) (regIdx reg) newVal
 
-setRegister :: Cpu s -> Registers -> Word8 -> ST s ()
-setRegister cpu reg = MV.write (cpu ^. registers) (regIdx reg)
+incPC :: Cpu s -> ST s ()
+incPC cpu = do
+  pcValue <- readSTRef (cpu ^. pc)
+  writeSTRef (cpu ^. pc) (pcValue + 1)
 
-getCarryFlag :: Cpu s -> ST s Word8
-getCarryFlag cpu = (.&. 0x10) <$> getRegister cpu RegF
+readRegister :: Cpu s -> Registers -> ST s Word8
+readRegister cpu reg = MV.read (cpu ^. registers) (regIdx reg)
 
-fetchMemory :: Cpu s -> Int -> ST s Word8
-fetchMemory cpu = MV.read (cpu ^. memory)
+readZeroFlag :: Cpu s -> ST s Bool
+readZeroFlag cpu = do
+  flags <- readRegister cpu RegF
+  return $ (flags .&. 0x80) /= 0
+
+readCarryFlag :: Cpu s -> ST s Word8
+readCarryFlag cpu = (.&. 0x10) <$> readRegister cpu RegF
+
+readMemory :: Cpu s -> Int -> ST s Word8
+readMemory cpu = MV.read (cpu ^. memory)
 
 readPair :: Cpu s -> Registers -> Registers -> ST s Word16
 readPair cpu highIndex lowIndex = do
-  low <- getRegister cpu lowIndex
-  high <- getRegister cpu highIndex
+  low <- readRegister cpu lowIndex
+  high <- readRegister cpu highIndex
   return $ (fromIntegral high `shiftL` 8) .|. fromIntegral low
 
 readHL :: Cpu s -> ST s Word16
@@ -38,6 +45,16 @@ readHL cpu = readPair cpu RegH RegL
 readSP :: Cpu s -> ST s Word16
 readSP cpu = do
   readSTRef (cpu ^. sp)
+
+readPC :: Cpu s -> ST s Word16
+readPC cpu = do
+  readSTRef (cpu ^. pc)
+
+regIdx :: Registers -> Int
+regIdx = fromEnum
+
+setRegister :: Cpu s -> Registers -> Word8 -> ST s ()
+setRegister cpu reg = MV.write (cpu ^. registers) (regIdx reg)
 
 setPair :: Cpu s -> Registers -> Registers -> Word16 -> ST s ()
 setPair cpu highIndex lowIndex val = do
@@ -52,18 +69,8 @@ setHL cpu = setPair cpu RegH RegL
 setSP :: Cpu s -> Word16 -> ST s ()
 setSP cpu = writeSTRef (cpu ^. sp)
 
-getSP :: Cpu s -> ST s Word16
-getSP cpu = readSTRef (cpu ^. sp)
+setPC :: Cpu s -> Word16 -> ST s ()
+setPC cpu = writeSTRef (cpu ^. pc)
 
-getZeroFlag :: Cpu s -> ST s Bool
-getZeroFlag cpu = do
-  flags <- getRegister cpu RegF
-  return $ (flags .&. 0x80) /= 0
-
-incPC :: Cpu s -> ST s ()
-incPC cpu = do
-  pcValue <- readSTRef (cpu ^. pc)
-  writeSTRef (cpu ^. pc) (pcValue + 1)
-
-regIdx :: Registers -> Int
-regIdx = fromEnum
+setMemory :: Cpu s -> Int -> Word8 -> ST s ()
+setMemory cpu = MV.write (cpu ^. memory)

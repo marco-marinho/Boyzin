@@ -12,9 +12,9 @@ data Registers = RegA | RegB | RegC | RegD | RegE | RegF | RegH | RegL
   deriving (Show, Eq, Enum, Bounded)
 
 data Instruction
-  = ADDC_A_R8 Registers
-  | ADDC_A_HL
-  | ADDC_A_N8 Word8
+  = ADC_A_R8 Registers
+  | ADC_A_HL
+  | ADC_A_N8 Word8
   | ADD_A_R8 Registers
   | ADD_A_HL
   | ADD_A_N8 Word8
