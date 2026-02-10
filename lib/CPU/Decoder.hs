@@ -29,6 +29,7 @@ decodeInstruction cpu = do
     0x26 -> do
       value <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ LD_R8_N8 RegH value
+    0x27 -> return DAA
     0x30 -> do
       offset <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ JR_NC_E8 (fromIntegral offset)

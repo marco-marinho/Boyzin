@@ -128,6 +128,23 @@ complementCarryFlag currFlag = result
     currCarry = (currFlag .&. 0x10) /= 0
     result = flagsToWord8 currZero False False (not currCarry)
 
+daa :: Word8 -> Word8 -> (Word8, Word8)
+daa x f = (result, flags)
+  where
+    nFlag = (f .&. 0x40) /= 0
+    hFlag = if nFlag then (f .&. 0x20) /= 0 else (f .&. 0x20) /= 0 || (x .&. 0xF) > 0x9
+    cFlag = if nFlag then (f .&. 0x10) /= 0 else (f .&. 0x10) /= 0 || x > 0x99
+    result = case (nFlag, hFlag, cFlag) of
+      (True, False, False) -> x
+      (True, True, False) -> x - 0x06
+      (True, False, True) -> x - 0x60
+      (True, True, True) -> x - 0x66
+      (False, False, False) -> x
+      (False, True, False) -> x + 0x06
+      (False, False, True) -> x + 0x60
+      (False, True, True) -> x + 0x66
+    flags = flagsToWord8 (result == 0) nFlag False (cFlag || (x > 0x99 && not nFlag))
+
 flagsFromWord8 :: Word8 -> FlagsRegister
 flagsFromWord8 w =
   FlagsRegister ((w .&. 0x80) /= 0) ((w .&. 0x40) /= 0) ((w .&. 0x20) /= 0) ((w .&. 0x10) /= 0)

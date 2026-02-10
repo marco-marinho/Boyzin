@@ -188,3 +188,9 @@ executeInstruction cpu instruction = case instruction of
     aVal <- readRegister cpu RegA
     setMemory cpu (fromIntegral hl) aVal
     setPair cpu RegHL (hl + 1)
+  DAA -> do
+    aVal <- readRegister cpu RegA
+    currFlags <- readRegister cpu RegF
+    let (result, newFlags) = Pure.daa aVal currFlags
+    setRegister cpu RegA result
+    setRegister cpu RegF newFlags

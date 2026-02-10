@@ -48,3 +48,4 @@ data Instruction
   | CCF
   | JR_NZ_E8 Int8
   | LD_HLI_A
+  | DAA
