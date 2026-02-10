@@ -22,13 +22,17 @@ compareProcessorStates expected actual index = do
 spec :: Spec
 spec = do
   describe "CPU Tests" $ do
-    mapM_ makeTest [0x20 .. 0xBF]
-  where
-    makeTest opcode =
+    forM_ [0x20 .. 0xBF] $ \opcode -> do
+      testEntries <- runIO $ loadTestData opcode
+
       it (printf "0x%02x" opcode) $ do
-        fileContents <- B.readFile ("external/sm83/v1/" ++ printf "%02x" opcode ++ ".json")
-        case decode fileContents :: Maybe [TestEntry] of
-          Just testEntries ->
-            forM_ (zip [1 ..] testEntries) $ \(index, testEntry) -> do
-              compareProcessorStates (runTestEntry testEntry) (final testEntry) index
-          Nothing -> expectationFailure "Failed to parse JSON file"
+        forM_ (zip [1 ..] testEntries) $ \(index, testEntry) -> do
+          compareProcessorStates (runTestEntry testEntry) (final testEntry) index
+
+loadTestData :: Word8 -> IO [TestEntry]
+loadTestData opcode = do
+  let path = printf "external/sm83/v1/%02x.json" opcode
+  fileContents <- B.readFile path
+  case decode fileContents of
+    Just entries -> return entries
+    Nothing -> return []

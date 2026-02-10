@@ -23,6 +23,7 @@ library
     microlens-th,
     vector,
   hs-source-dirs: lib
+  ghc-options: -fexpose-all-unfoldings -fspecialise-aggressively -O2
   default-language: GHC2024
 
 executable Boyzin
@@ -39,7 +40,6 @@ test-suite BoyzinTest
     DeriveGeneric,
     OverloadedStrings,
     DeriveAnyClass
-
   type: exitcode-stdio-1.0
   hs-source-dirs: test
   main-is: Spec.hs
@@ -54,7 +54,5 @@ test-suite BoyzinTest
     bytestring,
     aeson,
     text,
-
-  build-tool-depends: hspec-discover:hspec-discover
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -fexpose-all-unfoldings -fspecialise-aggressively -O2
   default-language: GHC2024
