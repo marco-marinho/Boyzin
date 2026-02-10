@@ -1,79 +1,114 @@
 module CPU.Interface where
 
-import Control.Monad.ST
+import CPU.Pure qualified as Pure
 import Data.Bits
-import Data.STRef
+import Data.IORef
+import Data.Int (Int16, Int32)
 import Data.Vector.Unboxed.Mutable qualified as MV
 import Data.Word (Word16, Word8)
 import Lens.Micro ((^.))
 import Types
 
-addToRegister :: Cpu s -> Registers -> Word8 -> ST s ()
+addToRegister :: Cpu -> Registers -> Word8 -> IO ()
 addToRegister cpu reg val = do
   currentVal <- readRegister cpu reg
   let newVal = currentVal + val
-  MV.write (cpu ^. registers) (regIdx reg) newVal
+  MV.unsafeWrite (cpu ^. registers) (regIdx reg) newVal
 
-incPC :: Cpu s -> ST s ()
+incPC :: Cpu -> IO ()
 incPC cpu = do
-  pcValue <- readSTRef (cpu ^. pc)
-  writeSTRef (cpu ^. pc) (pcValue + 1)
+  pcValue <- readIORef (cpu ^. pc)
+  writeIORef (cpu ^. pc) (pcValue + 1)
 
-readRegister :: Cpu s -> Registers -> ST s Word8
-readRegister cpu reg = MV.read (cpu ^. registers) (regIdx reg)
+doubleIncPC :: Cpu -> IO ()
+doubleIncPC cpu = do
+  pcValue <- readIORef (cpu ^. pc)
+  writeIORef (cpu ^. pc) (pcValue + 2)
 
-readZeroFlag :: Cpu s -> ST s Bool
-readZeroFlag cpu = do
-  flags <- readRegister cpu RegF
-  return $ (flags .&. 0x80) /= 0
+addToPC :: Cpu -> Int16 -> IO ()
+addToPC cpu offset = do
+  currentPC <- readIORef (cpu ^. pc)
+  let newPC = (fromIntegral currentPC :: Int32) + fromIntegral offset
+  writeIORef (cpu ^. pc) (fromIntegral newPC)
 
-readCarryFlag :: Cpu s -> ST s Word8
+readRegister :: Cpu -> Registers -> IO Word8
+readRegister cpu reg = MV.unsafeRead (cpu ^. registers) (regIdx reg)
+
+readZeroFlag :: Cpu -> IO Word8
+readZeroFlag cpu = (`shiftR` 7) . (.&. 0x80) <$> readRegister cpu RegF
+
+readCarryFlag :: Cpu -> IO Word8
 readCarryFlag cpu = (`shiftR` 4) . (.&. 0x10) <$> readRegister cpu RegF
 
-readMemory :: Cpu s -> Int -> ST s Word8
-readMemory cpu = MV.read (cpu ^. memory)
+readMemory :: Cpu -> Int -> IO Word8
+readMemory cpu = MV.unsafeRead (cpu ^. memory)
 
-readPair :: Cpu s -> Registers -> Registers -> ST s Word16
-readPair cpu highIndex lowIndex = do
+readPair :: Cpu -> Registers16 -> IO Word16
+readPair cpu reg16 = case reg16 of
+  RegBC -> readPair' cpu RegB RegC
+  RegDE -> readPair' cpu RegD RegE
+  RegHL -> readPair' cpu RegH RegL
+  RegSP -> readSP cpu
+
+readPair' :: Cpu -> Registers -> Registers -> IO Word16
+readPair' cpu highIndex lowIndex = do
   low <- readRegister cpu lowIndex
   high <- readRegister cpu highIndex
   return $ (fromIntegral high `shiftL` 8) .|. fromIntegral low
 
-readHL :: Cpu s -> ST s Word16
-readHL cpu = readPair cpu RegH RegL
-
-readSP :: Cpu s -> ST s Word16
+readSP :: Cpu -> IO Word16
 readSP cpu = do
-  readSTRef (cpu ^. sp)
+  readIORef (cpu ^. sp)
 
-readPC :: Cpu s -> ST s Word16
+readPC :: Cpu -> IO Word16
 readPC cpu = do
-  readSTRef (cpu ^. pc)
+  readIORef (cpu ^. pc)
 
 regIdx :: Registers -> Int
 regIdx = fromEnum
 
-setRegister :: Cpu s -> Registers -> Word8 -> ST s ()
-setRegister cpu reg = MV.write (cpu ^. registers) (regIdx reg)
+setRegister :: Cpu -> Registers -> Word8 -> IO ()
+setRegister cpu reg = MV.unsafeWrite (cpu ^. registers) (regIdx reg)
 
-setPair :: Cpu s -> Registers -> Registers -> Word16 -> ST s ()
+setPair :: Cpu -> Registers -> Registers -> Word16 -> IO ()
 setPair cpu highIndex lowIndex val = do
   let high = fromIntegral (val `shiftR` 8)
       low = fromIntegral (val .&. 0xFF)
   setRegister cpu highIndex high
   setRegister cpu lowIndex low
 
-setHL :: Cpu s -> Word16 -> ST s ()
+setHL :: Cpu -> Word16 -> IO ()
 setHL cpu = setPair cpu RegH RegL
 
-setSP :: Cpu s -> Word16 -> ST s ()
-setSP cpu = writeSTRef (cpu ^. sp)
+setSP :: Cpu -> Word16 -> IO ()
+setSP cpu = writeIORef (cpu ^. sp)
 
-setPC :: Cpu s -> Word16 -> ST s ()
-setPC cpu = writeSTRef (cpu ^. pc)
+setPC :: Cpu -> Word16 -> IO ()
+setPC cpu = writeIORef (cpu ^. pc)
 
-setMemory :: Cpu s -> Int -> Word8 -> ST s ()
-setMemory cpu = MV.write (cpu ^. memory)
+setMemory :: Cpu -> Int -> Word8 -> IO ()
+setMemory cpu = MV.unsafeWrite (cpu ^. memory)
 
-setHalted :: Cpu s -> Bool -> ST s ()
-setHalted cpu = writeSTRef (cpu ^. halted)
+setHalted :: Cpu -> Bool -> IO ()
+setHalted cpu = writeIORef (cpu ^. halted)
+
+decSP :: Cpu -> IO ()
+decSP cpu = do
+  spValue <- readSP cpu
+  writeIORef (cpu ^. sp) (spValue - 1)
+
+incRegister :: Cpu -> Registers -> IO ()
+incRegister cpu reg = do
+  currentVal <- readRegister cpu reg
+  currentCarry <- readCarryFlag cpu
+  let (newVal, newFlags) = Pure.inc currentVal currentCarry
+  setRegister cpu reg newVal
+  setRegister cpu RegF newFlags
+
+decRegister :: Cpu -> Registers -> IO ()
+decRegister cpu reg = do
+  currentVal <- readRegister cpu reg
+  currentCarry <- readCarryFlag cpu
+  let (newVal, newFlags) = Pure.dec currentVal currentCarry
+  setRegister cpu reg newVal
+  setRegister cpu RegF newFlags

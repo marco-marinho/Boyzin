@@ -12,16 +12,17 @@ import Text.Printf (printf)
 main :: IO ()
 main = hspec spec
 
-compareProcessorStates :: ProcessorState -> ProcessorState -> Int -> Expectation
+compareProcessorStates :: IO ProcessorState -> ProcessorState -> Int -> Expectation
 compareProcessorStates expected actual index = do
-  if expected == actual
+  expectedState <- expected
+  if expectedState == actual
     then return ()
-    else expectationFailure $ formatDiff expected actual index
+    else expectationFailure $ formatDiff expectedState actual index
 
 spec :: Spec
 spec = do
   describe "CPU Tests" $ do
-    mapM_ makeTest [0x40 .. 0xBF]
+    mapM_ makeTest [0x30 .. 0xBF]
   where
     makeTest opcode =
       it (printf "0x%02x" opcode) $ do

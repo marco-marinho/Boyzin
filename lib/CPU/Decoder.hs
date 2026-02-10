@@ -2,14 +2,42 @@ module CPU.Decoder where
 
 import CPU.Instructions (Instruction (..))
 import CPU.Interface
-import Control.Monad.ST
+import Data.Bits
 import Types
 
-decodeInstruction :: Cpu s -> ST s Instruction
+decodeInstruction :: Cpu -> IO Instruction
 decodeInstruction cpu = do
   pcValue <- readPC cpu
   opcode <- readMemory cpu (fromIntegral pcValue)
   case opcode of
+    0x30 -> do
+      offset <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ JR_NC_E8 (fromIntegral offset)
+    0x31 -> do
+      low <- readMemory cpu (fromIntegral (pcValue + 1))
+      high <- readMemory cpu (fromIntegral (pcValue + 2))
+      let value = (fromIntegral high `shiftL` 8) .|. fromIntegral low
+      return $ LD_SP_N16 value
+    0x32 -> return LD_HLD_A
+    0x33 -> return INC_SP
+    0x34 -> return INC_HL
+    0x35 -> return DEC_HL
+    0x36 -> do
+      value <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ LD_HL_N8 value
+    0x37 -> return SCF
+    0x38 -> do
+      offset <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ JR_C_E8 (fromIntegral offset)
+    0x39 -> return ADD_HL_SP
+    0x3A -> return LD_A_HLD
+    0x3B -> return DEC_SP
+    0x3C -> return $ INC_R8 RegA
+    0x3D -> return $ DEC_R8 RegA
+    0x3E -> do
+      value <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ LD_R8_N8 RegA value
+    0x3F -> return CCF
     0x40 -> return $ LD_R8_R8 RegB RegB
     0x41 -> return $ LD_R8_R8 RegB RegC
     0x42 -> return $ LD_R8_R8 RegB RegD

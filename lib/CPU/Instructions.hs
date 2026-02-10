@@ -30,3 +30,18 @@ data Instruction
   | LD_R8_HL Registers
   | LD_HL_R8 Registers
   | HALT
+  | JR_NC_E8 Int8
+  | LD_SP_N16 Word16
+  | LD_HLD_A
+  | INC_SP
+  | INC_HL
+  | DEC_HL
+  | LD_HL_N8 Word8
+  | SCF
+  | JR_C_E8 Int8
+  | LD_A_HLD
+  | DEC_SP
+  | INC_R8 Registers
+  | DEC_R8 Registers
+  | LD_R8_N8 Registers Word8
+  | CCF

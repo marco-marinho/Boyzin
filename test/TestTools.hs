@@ -43,7 +43,7 @@ instance ToJSON TestEntry
 
 instance FromJSON TestEntry
 
-cpuToProcessorState :: Ty.Cpu s -> [Int] -> ST s ProcessorState
+cpuToProcessorState :: Ty.Cpu -> [Int] -> IO ProcessorState
 cpuToProcessorState cpu ramAddresses = do
   (ProcessorState . fromIntegral <$> readPC cpu)
     <*> (fromIntegral <$> readSP cpu)
@@ -57,7 +57,7 @@ cpuToProcessorState cpu ramAddresses = do
     <*> (fromIntegral <$> readRegister cpu Ty.RegL)
     <*> mapM (\addr -> (fromIntegral addr,) . fromIntegral <$> readMemory cpu addr) ramAddresses
 
-cpuFromProcessorState :: ProcessorState -> Ty.Cpu s -> ST s ()
+cpuFromProcessorState :: ProcessorState -> Ty.Cpu -> IO ()
 cpuFromProcessorState ProcessorState {pc, sp, a, b, c, d, e, f, h, l, ram} cpu = do
   setPC cpu (fromIntegral pc)
   setSP cpu (fromIntegral sp)
@@ -71,8 +71,8 @@ cpuFromProcessorState ProcessorState {pc, sp, a, b, c, d, e, f, h, l, ram} cpu =
   setRegister cpu Ty.RegL (fromIntegral l)
   mapM_ (\(addr, val) -> setMemory cpu (fromIntegral addr) (fromIntegral val)) ram
 
-runTestEntry :: TestEntry -> ProcessorState
-runTestEntry TestEntry {initial, final, cycles} = runST $ do
+runTestEntry :: TestEntry -> IO ProcessorState
+runTestEntry TestEntry {initial, final, cycles} = do
   cpu <- makeCPU
   cpuFromProcessorState initial cpu
   fetchDecodeExecute cpu

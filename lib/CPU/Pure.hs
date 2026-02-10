@@ -43,13 +43,13 @@ addSigned x y = (result, flags)
     carry = (fromIntegral lowSp + uE8) > 0xFF
     flags = flagsToWord8 False False half_carry carry
 
-add16 :: Word16 -> Word16 -> Bool -> (Word16, Word8)
+add16 :: Word16 -> Word16 -> Word8 -> (Word16, Word8)
 add16 x y zero = (result, flags)
   where
     result = x + y
     half_carry = isCarryFrom16 11 x y
     carry = (fromIntegral x + fromIntegral y) > (0xFFFF :: Int)
-    flags = flagsToWord8 zero False half_carry carry
+    flags = flagsToWord8 (zero /= 0) False half_carry carry
 
 sub :: Word8 -> Word8 -> (Word8, Word8)
 sub x y = (result, flags)
@@ -99,6 +99,34 @@ flagsToWord8 zero substract halfCarry carry =
     .|. (if substract then 0x40 else 0)
     .|. (if halfCarry then 0x20 else 0)
     .|. (if carry then 0x10 else 0)
+
+inc :: Word8 -> Word8 -> (Word8, Word8)
+inc x currCarry = (result, newFlags)
+  where
+    result = x + 1
+    zero = result == 0
+    halfCarry = (x .&. 0xF) == 0xF
+    newFlags = flagsToWord8 zero False halfCarry (currCarry /= 0)
+
+dec :: Word8 -> Word8 -> (Word8, Word8)
+dec x currCarry = (result, newFlags)
+  where
+    result = x - 1
+    zero = result == 0
+    halfCarry = (x .&. 0xF) == 0
+    newFlags = flagsToWord8 zero True halfCarry (currCarry /= 0)
+
+setCarryFlag :: Word8 -> Word8
+setCarryFlag currZero = result
+  where
+    result = flagsToWord8 (currZero /= 0) False False True
+
+complementCarryFlag :: Word8 -> Word8
+complementCarryFlag currFlag = result
+  where
+    currZero = (currFlag .&. 0x80) /= 0
+    currCarry = (currFlag .&. 0x10) /= 0
+    result = flagsToWord8 currZero False False (not currCarry)
 
 flagsFromWord8 :: Word8 -> FlagsRegister
 flagsFromWord8 w =

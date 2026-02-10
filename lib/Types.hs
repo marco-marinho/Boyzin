@@ -2,7 +2,7 @@
 
 module Types where
 
-import Data.STRef
+import Data.IORef
 import Data.Vector.Unboxed.Mutable qualified as MV
 import Data.Word (Word16, Word8)
 import Lens.Micro.TH (makeLenses)
@@ -10,12 +10,15 @@ import Lens.Micro.TH (makeLenses)
 data Registers = RegA | RegB | RegC | RegD | RegE | RegF | RegH | RegL
   deriving (Show, Eq, Enum, Bounded)
 
-data Cpu s = Cpu
-  { _registers :: MV.MVector s Word8,
-    _memory :: MV.MVector s Word8,
-    _pc :: STRef s Word16,
-    _sp :: STRef s Word16,
-    _halted :: STRef s Bool
+data Registers16 = RegBC | RegDE | RegHL | RegSP
+  deriving (Show, Eq)
+
+data Cpu = Cpu
+  { _registers :: !(MV.IOVector Word8),
+    _memory :: !(MV.IOVector Word8),
+    _pc :: !(IORef Word16),
+    _sp :: !(IORef Word16),
+    _halted :: !(IORef Bool)
   }
 
 data FlagsRegister = FlagsRegister
