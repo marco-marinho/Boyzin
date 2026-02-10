@@ -22,7 +22,7 @@ compareProcessorStates expected actual index = do
 spec :: Spec
 spec = do
   describe "CPU Tests" $ do
-    mapM_ makeTest ([0x20 .. 0x27] ++ [0x30 .. 0xBF])
+    mapM_ makeTest [0x20 .. 0xBF]
   where
     makeTest opcode =
       it (printf "0x%02x" opcode) $ do

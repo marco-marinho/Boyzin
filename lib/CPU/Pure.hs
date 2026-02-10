@@ -1,6 +1,6 @@
 module CPU.Pure where
 
-import Data.Bits (Bits (shiftL, xor, (.&.), (.|.)))
+import Data.Bits (Bits (complement, shiftL, xor, (.&.), (.|.)))
 import Data.Int (Int8)
 import Data.Word (Word16, Word8)
 import Types (FlagsRegister (FlagsRegister))
@@ -144,6 +144,12 @@ daa x f = (result, flags)
       (False, False, True) -> x + 0x60
       (False, True, True) -> x + 0x66
     flags = flagsToWord8 (result == 0) nFlag False (cFlag || (x > 0x99 && not nFlag))
+
+comp :: Word8 -> Word8 -> (Word8, Word8)
+comp x currFlag = (result, newFlags)
+  where
+    result = complement x
+    newFlags = currFlag .|. 0x40 .|. 0x20
 
 flagsFromWord8 :: Word8 -> FlagsRegister
 flagsFromWord8 w =

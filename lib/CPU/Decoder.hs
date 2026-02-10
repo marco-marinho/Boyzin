@@ -30,6 +30,18 @@ decodeInstruction cpu = do
       value <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ LD_R8_N8 RegH value
     0x27 -> return DAA
+    0x28 -> do
+      offset <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ JR_Z_E8 (fromIntegral offset)
+    0x29 -> return $ ADD_HL_R16 RegHL
+    0x2A -> return LD_A_HLI
+    0x2B -> return $ DEC_R16 RegHL
+    0x2C -> return $ INC_R8 RegL
+    0x2D -> return $ DEC_R8 RegL
+    0x2E -> do
+      value <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ LD_R8_N8 RegL value
+    0x2F -> return CPL
     0x30 -> do
       offset <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ JR_NC_E8 (fromIntegral offset)
@@ -49,7 +61,7 @@ decodeInstruction cpu = do
     0x38 -> do
       offset <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ JR_C_E8 (fromIntegral offset)
-    0x39 -> return ADD_HL_SP
+    0x39 -> return $ ADD_HL_R16 RegSP
     0x3A -> return LD_A_HLD
     0x3B -> return $ DEC_R16 RegSP
     0x3C -> return $ INC_R8 RegA
