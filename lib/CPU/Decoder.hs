@@ -6,7 +6,7 @@ import Data.Bits (Bits (shiftL, (.|.)))
 import Types
   ( Cpu,
     Registers (RegA, RegB, RegC, RegD, RegE, RegH, RegL),
-    Registers16 (RegHL, RegSP),
+    Registers16 (RegDE, RegHL, RegSP),
   )
 
 decodeInstruction :: Cpu -> IO Instruction
@@ -14,6 +14,20 @@ decodeInstruction cpu = do
   pcValue <- readPC cpu
   opcode <- readMemory cpu (fromIntegral pcValue)
   case opcode of
+    0x10 -> do
+      return STOP
+    0x11 -> do
+      low <- readMemory cpu (fromIntegral (pcValue + 1))
+      high <- readMemory cpu (fromIntegral (pcValue + 2))
+      let value = (fromIntegral high `shiftL` 8) .|. fromIntegral low
+      return $ LD_R16_N16 RegDE value
+    0x12 -> return $ LD_R16_REF_A RegDE
+    0x13 -> return $ INC_R16 RegDE
+    0x14 -> return $ INC_R8 RegD
+    0x15 -> return $ DEC_R8 RegD
+    0x16 -> do
+      value <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ LD_R8_N8 RegD value
     0x20 -> do
       offset <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ JR_NZ_E8 (fromIntegral offset)

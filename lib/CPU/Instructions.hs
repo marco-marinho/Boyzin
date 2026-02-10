@@ -52,3 +52,5 @@ data Instruction
   | JR_Z_E8 Int8
   | LD_A_HLI
   | CPL
+  | STOP
+  | LD_R16_REF_A Registers16

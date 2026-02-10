@@ -210,3 +210,8 @@ executeInstruction cpu instruction = case instruction of
     let (result, newFlags) = Pure.comp aVal currFlags
     setRegister cpu RegA result
     setRegister cpu RegF newFlags
+  STOP -> return ()
+  LD_R16_REF_A reg16 -> do
+    aVal <- readRegister cpu RegA
+    memAddr <- readPair cpu reg16
+    setMemory cpu (fromIntegral memAddr) aVal
