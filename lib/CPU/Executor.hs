@@ -12,7 +12,7 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.addc <$> readRegister cpu RegA <*> readRegister cpu target <*> readCarryFlag cpu
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  ADC_A_HL -> do
+  ADC_A_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.addc <$> readRegister cpu RegA <*> pure memVal <*> readCarryFlag cpu
@@ -26,7 +26,7 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.add <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  ADD_A_HL -> do
+  ADD_A_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.add <$> readRegister cpu RegA <*> pure memVal
@@ -38,11 +38,11 @@ executeInstruction cpu instruction = case instruction of
     setRegister cpu RegF flags
   ADD_HL_R16 val -> do
     (result, flags) <- Pure.add16 <$> readPair cpu RegHL <*> pure val <*> readZeroFlag cpu
-    setHL cpu result
+    setPair cpu RegHL result
     setRegister cpu RegF flags
   ADD_HL_SP -> do
     (result, flags) <- Pure.add16 <$> readPair cpu RegHL <*> readSP cpu <*> readZeroFlag cpu
-    setHL cpu result
+    setPair cpu RegHL result
     setRegister cpu RegF flags
   ADD_SP_E8 val -> do
     (result, flags) <- Pure.addSigned <$> readSP cpu <*> pure val
@@ -52,7 +52,7 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.sub <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  SUB_A_HL -> do
+  SUB_A_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.sub <$> readRegister cpu RegA <*> pure memVal
@@ -62,7 +62,7 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.subc <$> readRegister cpu RegA <*> readRegister cpu target <*> readCarryFlag cpu
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  SBC_A_HL -> do
+  SBC_A_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.subc <$> readRegister cpu RegA <*> pure memVal <*> readCarryFlag cpu
@@ -72,7 +72,7 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.and <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  AND_A_HL -> do
+  AND_A_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.and <$> readRegister cpu RegA <*> pure memVal
@@ -82,7 +82,7 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.iXor <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  XOR_A_HL -> do
+  XOR_A_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.iXor <$> readRegister cpu RegA <*> pure memVal
@@ -92,7 +92,7 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.or <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
-  OR_A_HL -> do
+  OR_A_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.or <$> readRegister cpu RegA <*> pure memVal
@@ -101,7 +101,7 @@ executeInstruction cpu instruction = case instruction of
   CP_A_R8 target -> do
     (_, flags) <- Pure.sub <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegF flags
-  CP_A_HL -> do
+  CP_A_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (_, flags) <- Pure.sub <$> readRegister cpu RegA <*> pure memVal
@@ -124,24 +124,25 @@ executeInstruction cpu instruction = case instruction of
     when (carry == 0) $ do
       addToPC cpu (fromIntegral offset)
     incPC cpu
-  LD_SP_N16 val -> do
-    setSP cpu val
+  LD_R16_N16 reg16 val -> do
+    setPair cpu reg16 val
     doubleIncPC cpu
   LD_HLD_A -> do
     hl <- readPair cpu RegHL
     aVal <- readRegister cpu RegA
     setMemory cpu (fromIntegral hl) aVal
-    setHL cpu (hl - 1)
-  INC_SP -> do
-    sp <- readSP cpu
-    setSP cpu (sp + 1)
-  INC_HL -> do
+    setPair cpu RegHL (hl - 1)
+  INC_R16 reg16 -> do
+    incPair cpu reg16
+  DEC_R16 reg16 -> do
+    decPair cpu reg16
+  INC_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.inc memVal <$> readCarryFlag cpu
     setMemory cpu (fromIntegral hl) result
     setRegister cpu RegF flags
-  DEC_HL -> do
+  DEC_HL_REF -> do
     hl <- readPair cpu RegHL
     memVal <- readMemory cpu (fromIntegral hl)
     (result, flags) <- Pure.dec memVal <$> readCarryFlag cpu
@@ -164,7 +165,7 @@ executeInstruction cpu instruction = case instruction of
     hl <- readPair cpu RegHL
     val <- readMemory cpu (fromIntegral hl)
     setRegister cpu RegA val
-    setHL cpu (hl - 1)
+    setPair cpu RegHL (hl - 1)
   DEC_SP -> decSP cpu
   INC_R8 reg -> do
     incRegister cpu reg
@@ -177,3 +178,13 @@ executeInstruction cpu instruction = case instruction of
     currFlags <- readRegister cpu RegF
     let newFlags = Pure.complementCarryFlag currFlags
     setRegister cpu RegF newFlags
+  JR_NZ_E8 offset -> do
+    zeroFlag <- readZeroFlag cpu
+    when (zeroFlag == 0) $ do
+      addToPC cpu (fromIntegral offset)
+    incPC cpu
+  LD_HLI_A -> do
+    hl <- readPair cpu RegHL
+    aVal <- readRegister cpu RegA
+    setMemory cpu (fromIntegral hl) aVal
+    setPair cpu RegHL (hl + 1)

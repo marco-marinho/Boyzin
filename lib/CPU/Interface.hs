@@ -70,15 +70,19 @@ regIdx = fromEnum
 setRegister :: Cpu -> Registers -> Word8 -> IO ()
 setRegister cpu reg = MV.unsafeWrite (cpu ^. registers) (regIdx reg)
 
-setPair :: Cpu -> Registers -> Registers -> Word16 -> IO ()
-setPair cpu highIndex lowIndex val = do
+setPair :: Cpu -> Registers16 -> Word16 -> IO ()
+setPair cpu reg16 val = case reg16 of
+  RegBC -> setPair' cpu RegB RegC val
+  RegDE -> setPair' cpu RegD RegE val
+  RegHL -> setPair' cpu RegH RegL val
+  RegSP -> setSP cpu val
+
+setPair' :: Cpu -> Registers -> Registers -> Word16 -> IO ()
+setPair' cpu highIndex lowIndex val = do
   let high = fromIntegral (val `shiftR` 8)
       low = fromIntegral (val .&. 0xFF)
   setRegister cpu highIndex high
   setRegister cpu lowIndex low
-
-setHL :: Cpu -> Word16 -> IO ()
-setHL cpu = setPair cpu RegH RegL
 
 setSP :: Cpu -> Word16 -> IO ()
 setSP cpu = writeIORef (cpu ^. sp)
@@ -91,6 +95,18 @@ setMemory cpu = MV.unsafeWrite (cpu ^. memory)
 
 setHalted :: Cpu -> Bool -> IO ()
 setHalted cpu = writeIORef (cpu ^. halted)
+
+incPair :: Cpu -> Registers16 -> IO ()
+incPair cpu reg16 = do
+  currentVal <- readPair cpu reg16
+  let newVal = currentVal + 1
+  setPair cpu reg16 newVal
+
+decPair :: Cpu -> Registers16 -> IO ()
+decPair cpu reg16 = do
+  currentVal <- readPair cpu reg16
+  let newVal = currentVal - 1
+  setPair cpu reg16 newVal
 
 decSP :: Cpu -> IO ()
 decSP cpu = do
