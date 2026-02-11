@@ -267,4 +267,23 @@ decodeInstruction cpu = do
     0xC7 -> return $ RST 0x00
     0xC8 -> return RET_Z
     0xC9 -> return RET
+    0xCA -> do
+      address <- read16Bits cpu (fromIntegral (pcValue + 1))
+      return $ JP_Z_N16 address
+    0xCB -> decodePrefixed cpu
     _ -> error $ "Unknown opcode: " ++ show opcode
+
+decodePrefixed :: Cpu -> IO Instruction
+decodePrefixed cpu = do
+  pcValue <- readPC cpu
+  opcode <- readMemory cpu (fromIntegral pcValue + 1)
+  case opcode of
+    0x00 -> return $ RLC_R8 RegB
+    0x01 -> return $ RLC_R8 RegC
+    0x02 -> return $ RLC_R8 RegD
+    0x03 -> return $ RLC_R8 RegE
+    0x04 -> return $ RLC_R8 RegH
+    0x05 -> return $ RLC_R8 RegL
+    0x06 -> return RLC_HL_REF
+    0x07 -> return $ RLC_R8 RegA
+    _ -> error $ "Unknown prefixed opcode: " ++ show opcode

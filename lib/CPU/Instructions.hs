@@ -71,3 +71,6 @@ data Instruction
   | RST Word8
   | RET_Z
   | RET
+  | JP_Z_N16 Word16
+  | RLC_R8 Registers
+  | RLC_HL_REF

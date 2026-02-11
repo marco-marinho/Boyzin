@@ -360,3 +360,21 @@ executeInstruction cpu instruction = case instruction of
   RET -> do
     incPC cpu
     ret cpu
+  JP_Z_N16 addr -> do
+    tripleIncPC cpu
+    zeroFlag <- readZeroFlag cpu
+    when (zeroFlag /= 0) $ do
+      setPC cpu addr
+  RLC_R8 reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    let (result, newFlags) = Pure.rlc regVal
+    setRegister cpu reg result
+    setRegister cpu RegF newFlags
+  RLC_HL_REF -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    let (result, newFlags) = Pure.rlc memVal
+    setMemory cpu (fromIntegral hl) result
+    setRegister cpu RegF newFlags
