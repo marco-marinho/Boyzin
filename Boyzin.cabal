@@ -33,6 +33,7 @@ executable Boyzin
     Boyzin,
     base ^>=4.21.0.0,
   hs-source-dirs: app
+  ghc-options: -fexpose-all-unfoldings -fspecialise-aggressively -O2
   default-language: GHC2024
 
 test-suite BoyzinTest

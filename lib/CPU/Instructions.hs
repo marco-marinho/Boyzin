@@ -54,3 +54,16 @@ data Instruction
   | CPL
   | STOP
   | LD_R16_REF_A Registers16
+  | RLA
+  | JR_E8 Int8
+  | LD_A_R16_REF Registers16
+  | RRA
+  | NOP
+  | RLCA
+  | LD_N16_REF_SP Word16
+  | RRCA
+  | RET_NZ
+  | POP_R16 Registers16
+  | JP_NZ_N16 Word16
+  | JP_N16 Word16
+  | CALL_NZ_N16 Word16

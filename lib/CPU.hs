@@ -2,7 +2,6 @@ module CPU (fetchDecodeExecute, makeCPU) where
 
 import CPU.Decoder (decodeInstruction)
 import CPU.Executor (executeInstruction)
-import CPU.Interface (incPC)
 import Data.IORef
 import Data.Vector.Unboxed.Mutable qualified as MV
 import Types (Cpu (Cpu))
@@ -11,7 +10,6 @@ fetchDecodeExecute :: Cpu -> IO ()
 fetchDecodeExecute !cpu = do
   instruction <- decodeInstruction cpu
   executeInstruction cpu instruction
-  incPC cpu
 
 makeCPU :: IO Cpu
 makeCPU = do

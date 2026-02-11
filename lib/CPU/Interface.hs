@@ -20,10 +20,20 @@ incPC cpu = do
   pcValue <- readIORef (cpu ^. pc)
   writeIORef (cpu ^. pc) (pcValue + 1)
 
+incSP :: Cpu -> IO ()
+incSP cpu = do
+  spValue <- readIORef (cpu ^. sp)
+  writeIORef (cpu ^. sp) (spValue + 1)
+
 doubleIncPC :: Cpu -> IO ()
 doubleIncPC cpu = do
   pcValue <- readIORef (cpu ^. pc)
   writeIORef (cpu ^. pc) (pcValue + 2)
+
+tripleIncPC :: Cpu -> IO ()
+tripleIncPC cpu = do
+  pcValue <- readIORef (cpu ^. pc)
+  writeIORef (cpu ^. pc) (pcValue + 3)
 
 addToPC :: Cpu -> Int16 -> IO ()
 addToPC cpu offset = do
@@ -113,6 +123,11 @@ decSP cpu = do
   spValue <- readSP cpu
   writeIORef (cpu ^. sp) (spValue - 1)
 
+decPC :: Cpu -> IO ()
+decPC cpu = do
+  pcValue <- readPC cpu
+  writeIORef (cpu ^. pc) (pcValue - 1)
+
 incRegister :: Cpu -> Registers -> IO ()
 incRegister cpu reg = do
   currentVal <- readRegister cpu reg
@@ -128,3 +143,35 @@ decRegister cpu reg = do
   let (newVal, newFlags) = Pure.dec currentVal currentCarry
   setRegister cpu reg newVal
   setRegister cpu RegF newFlags
+
+ret :: Cpu -> IO ()
+ret cpu = do
+  lowAddr <- readSP cpu
+  low <- readMemory cpu (fromIntegral lowAddr)
+  incSP cpu
+  highAddr <- readSP cpu
+  high <- readMemory cpu (fromIntegral highAddr)
+  incSP cpu
+  setPC cpu ((fromIntegral high `shiftL` 8) .|. fromIntegral low)
+
+pop :: Cpu -> Registers16 -> IO ()
+pop cpu reg16 = do
+  lowAddr <- readSP cpu
+  low <- readMemory cpu (fromIntegral lowAddr)
+  incSP cpu
+  highAddr <- readSP cpu
+  high <- readMemory cpu (fromIntegral highAddr)
+  incSP cpu
+  let value = (fromIntegral high `shiftL` 8) .|. fromIntegral low
+  setPair cpu reg16 value
+
+call :: Cpu -> Word16 -> IO ()
+call cpu addr = do
+  currPC <- readPC cpu
+  decSP cpu
+  addrH <- readSP cpu
+  setMemory cpu (fromIntegral addrH) (fromIntegral (shiftR currPC 8))
+  decSP cpu
+  addrL <- readSP cpu
+  setMemory cpu (fromIntegral addrL) (fromIntegral (currPC .&. 0xFF))
+  setPC cpu addr

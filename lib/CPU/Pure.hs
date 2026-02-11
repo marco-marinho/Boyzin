@@ -1,6 +1,6 @@
 module CPU.Pure where
 
-import Data.Bits (Bits (complement, shiftL, xor, (.&.), (.|.)))
+import Data.Bits (Bits (complement, shiftL, shiftR, xor, (.&.), (.|.)))
 import Data.Int (Int8)
 import Data.Word (Word16, Word8)
 import Types (FlagsRegister (FlagsRegister))
@@ -150,6 +150,34 @@ comp x currFlag = (result, newFlags)
   where
     result = complement x
     newFlags = currFlag .|. 0x40 .|. 0x20
+
+rla :: Word8 -> Word8 -> (Word8, Word8)
+rla x carryIn = (result, newFlags)
+  where
+    carryOut = shiftR x 7
+    result = shiftL x 1 .|. carryIn
+    newFlags = flagsToWord8 False False False (carryOut /= 0)
+
+rra :: Word8 -> Word8 -> (Word8, Word8)
+rra x carryIn = (result, newFlags)
+  where
+    carryOut = x .&. 0x01
+    result = shiftR x 1 .|. (carryIn `shiftL` 7)
+    newFlags = flagsToWord8 False False False (carryOut /= 0)
+
+rlca :: Word8 -> (Word8, Word8)
+rlca x = (result, newFlags)
+  where
+    carryOut = shiftR x 7
+    result = shiftL x 1 .|. carryOut
+    newFlags = flagsToWord8 False False False (carryOut /= 0)
+
+rrca :: Word8 -> (Word8, Word8)
+rrca x = (result, newFlags)
+  where
+    carryOut = x .&. 0x01
+    result = shiftR x 1 .|. (carryOut `shiftL` 7)
+    newFlags = flagsToWord8 False False False (carryOut /= 0)
 
 flagsFromWord8 :: Word8 -> FlagsRegister
 flagsFromWord8 w =

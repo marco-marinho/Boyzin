@@ -3,23 +3,51 @@ module CPU.Decoder where
 import CPU.Instructions (Instruction (..))
 import CPU.Interface (readMemory, readPC)
 import Data.Bits (Bits (shiftL, (.|.)))
+import Data.Word (Word16)
 import Types
   ( Cpu,
     Registers (RegA, RegB, RegC, RegD, RegE, RegH, RegL),
-    Registers16 (RegDE, RegHL, RegSP),
+    Registers16 (RegBC, RegDE, RegHL, RegSP),
   )
+
+read16Bits :: Cpu -> Int -> IO Word16
+read16Bits cpu addr = do
+  low <- readMemory cpu addr
+  high <- readMemory cpu (addr + 1)
+  return $ (fromIntegral high `shiftL` 8) .|. fromIntegral low
 
 decodeInstruction :: Cpu -> IO Instruction
 decodeInstruction cpu = do
   pcValue <- readPC cpu
   opcode <- readMemory cpu (fromIntegral pcValue)
   case opcode of
-    0x10 -> do
-      return STOP
+    0x00 -> return NOP
+    0x01 -> do
+      value <- read16Bits cpu (fromIntegral (pcValue + 1))
+      return $ LD_R16_N16 RegBC value
+    0x02 -> return $ LD_R16_REF_A RegBC
+    0x03 -> return $ INC_R16 RegBC
+    0x04 -> return $ INC_R8 RegB
+    0x05 -> return $ DEC_R8 RegB
+    0x06 -> do
+      value <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ LD_R8_N8 RegB value
+    0x07 -> return RLCA
+    0x08 -> do
+      offset <- read16Bits cpu (fromIntegral (pcValue + 1))
+      return $ LD_N16_REF_SP offset
+    0x09 -> return $ ADD_HL_R16 RegBC
+    0x0A -> return $ LD_A_R16_REF RegBC
+    0x0B -> return $ DEC_R16 RegBC
+    0x0C -> return $ INC_R8 RegC
+    0x0D -> return $ DEC_R8 RegC
+    0x0E -> do
+      value <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ LD_R8_N8 RegC value
+    0x0F -> return RRCA
+    0x10 -> return STOP
     0x11 -> do
-      low <- readMemory cpu (fromIntegral (pcValue + 1))
-      high <- readMemory cpu (fromIntegral (pcValue + 2))
-      let value = (fromIntegral high `shiftL` 8) .|. fromIntegral low
+      value <- read16Bits cpu (fromIntegral (pcValue + 1))
       return $ LD_R16_N16 RegDE value
     0x12 -> return $ LD_R16_REF_A RegDE
     0x13 -> return $ INC_R16 RegDE
@@ -28,13 +56,24 @@ decodeInstruction cpu = do
     0x16 -> do
       value <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ LD_R8_N8 RegD value
+    0x17 -> return RLA
+    0x18 -> do
+      offset <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ JR_E8 (fromIntegral offset)
+    0x19 -> return $ ADD_HL_R16 RegDE
+    0x1A -> return $ LD_A_R16_REF RegDE
+    0x1B -> return $ DEC_R16 RegDE
+    0x1C -> return $ INC_R8 RegE
+    0x1D -> return $ DEC_R8 RegE
+    0x1E -> do
+      value <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ LD_R8_N8 RegE value
+    0x1F -> return RRA
     0x20 -> do
       offset <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ JR_NZ_E8 (fromIntegral offset)
     0x21 -> do
-      low <- readMemory cpu (fromIntegral (pcValue + 1))
-      high <- readMemory cpu (fromIntegral (pcValue + 2))
-      let value = (fromIntegral high `shiftL` 8) .|. fromIntegral low
+      value <- read16Bits cpu (fromIntegral (pcValue + 1))
       return $ LD_R16_N16 RegHL value
     0x22 -> return LD_HLI_A
     0x23 -> return $ INC_R16 RegHL
@@ -60,9 +99,7 @@ decodeInstruction cpu = do
       offset <- readMemory cpu (fromIntegral (pcValue + 1))
       return $ JR_NC_E8 (fromIntegral offset)
     0x31 -> do
-      low <- readMemory cpu (fromIntegral (pcValue + 1))
-      high <- readMemory cpu (fromIntegral (pcValue + 2))
-      let value = (fromIntegral high `shiftL` 8) .|. fromIntegral low
+      value <- read16Bits cpu (fromIntegral (pcValue + 1))
       return $ LD_R16_N16 RegSP value
     0x32 -> return LD_HLD_A
     0x33 -> return $ INC_R16 RegSP
@@ -212,4 +249,15 @@ decodeInstruction cpu = do
     0xBD -> return $ CP_A_R8 RegL
     0xBE -> return CP_A_HL_REF
     0xBF -> return $ CP_A_R8 RegA
+    0xC0 -> return RET_NZ
+    0xC1 -> return $ POP_R16 RegBC
+    0xC2 -> do
+      address <- read16Bits cpu (fromIntegral (pcValue + 1))
+      return $ JP_NZ_N16 address
+    0xC3 -> do
+      address <- read16Bits cpu (fromIntegral (pcValue + 1))
+      return $ JP_N16 address
+    0xC4 -> do
+      address <- read16Bits cpu (fromIntegral (pcValue + 1))
+      return $ CALL_NZ_N16 address
     _ -> error $ "Unknown opcode: " ++ show opcode
