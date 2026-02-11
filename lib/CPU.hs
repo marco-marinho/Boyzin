@@ -2,7 +2,7 @@ module CPU (fetchDecodeExecute, makeCPU) where
 
 import CPU.Decoder (decodeInstruction)
 import CPU.Executor (executeInstruction)
-import Data.IORef
+import Data.IORef (newIORef)
 import Data.Vector.Unboxed.Mutable qualified as MV
 import Types (Cpu (Cpu))
 

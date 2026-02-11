@@ -22,7 +22,7 @@ compareProcessorStates expected actual index = do
 spec :: Spec
 spec = do
   describe "CPU Tests" $ do
-    forM_ [0x00 .. 0xC4] $ \opcode -> do
+    forM_ [0x00 .. 0xC9] $ \opcode -> do
       testEntries <- runIO $ loadTestData opcode
 
       it (printf "0x%02x" opcode) $ do

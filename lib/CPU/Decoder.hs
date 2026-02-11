@@ -260,4 +260,11 @@ decodeInstruction cpu = do
     0xC4 -> do
       address <- read16Bits cpu (fromIntegral (pcValue + 1))
       return $ CALL_NZ_N16 address
+    0xC5 -> return $ PUSH_R16 RegBC
+    0xC6 -> do
+      value <- readMemory cpu (fromIntegral (pcValue + 1))
+      return $ ADD_A_N8 value
+    0xC7 -> return $ RST 0x00
+    0xC8 -> return RET_Z
+    0xC9 -> return RET
     _ -> error $ "Unknown opcode: " ++ show opcode

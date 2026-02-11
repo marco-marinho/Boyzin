@@ -175,3 +175,13 @@ call cpu addr = do
   addrL <- readSP cpu
   setMemory cpu (fromIntegral addrL) (fromIntegral (currPC .&. 0xFF))
   setPC cpu addr
+
+push :: Cpu -> Registers16 -> IO ()
+push cpu reg16 = do
+  value <- readPair cpu reg16
+  decSP cpu
+  addrH <- readSP cpu
+  setMemory cpu (fromIntegral addrH) (fromIntegral (shiftR value 8))
+  decSP cpu
+  addrL <- readSP cpu
+  setMemory cpu (fromIntegral addrL) (fromIntegral (value .&. 0xFF))

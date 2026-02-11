@@ -2,6 +2,32 @@ module CPU.Executor where
 
 import CPU.Instructions (Instruction (..))
 import CPU.Interface
+  ( addToPC,
+    call,
+    decPair,
+    decRegister,
+    decSP,
+    doubleIncPC,
+    incPC,
+    incPair,
+    incRegister,
+    pop,
+    push,
+    readCarryFlag,
+    readMemory,
+    readPair,
+    readRegister,
+    readSP,
+    readZeroFlag,
+    ret,
+    setHalted,
+    setMemory,
+    setPC,
+    setPair,
+    setRegister,
+    setSP,
+    tripleIncPC,
+  )
 import CPU.Pure qualified as Pure
 import Control.Monad (when)
 import Data.Bits (shiftR, (.&.))
@@ -39,7 +65,7 @@ executeInstruction cpu instruction = case instruction of
     setRegister cpu RegA result
     setRegister cpu RegF flags
   ADD_A_N8 val -> do
-    incPC cpu
+    doubleIncPC cpu
     (result, flags) <- Pure.add <$> readRegister cpu RegA <*> pure val
     setRegister cpu RegA result
     setRegister cpu RegF flags
@@ -320,3 +346,17 @@ executeInstruction cpu instruction = case instruction of
     zeroFlag <- readZeroFlag cpu
     when (zeroFlag == 0) $ do
       call cpu addr
+  PUSH_R16 reg16 -> do
+    incPC cpu
+    push cpu reg16
+  RST rstAddr -> do
+    incPC cpu
+    call cpu (fromIntegral rstAddr)
+  RET_Z -> do
+    incPC cpu
+    zeroFlag <- readZeroFlag cpu
+    when (zeroFlag /= 0) $ do
+      ret cpu
+  RET -> do
+    incPC cpu
+    ret cpu

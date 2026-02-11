@@ -67,3 +67,7 @@ data Instruction
   | JP_NZ_N16 Word16
   | JP_N16 Word16
   | CALL_NZ_N16 Word16
+  | PUSH_R16 Registers16
+  | RST Word8
+  | RET_Z
+  | RET
