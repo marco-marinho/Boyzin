@@ -286,4 +286,12 @@ decodePrefixed cpu = do
     0x05 -> return $ RLC_R8 RegL
     0x06 -> return RLC_HL_REF
     0x07 -> return $ RLC_R8 RegA
+    0x08 -> return $ RRC_R8 RegB
+    0x09 -> return $ RRC_R8 RegC
+    0x0A -> return $ RRC_R8 RegD
+    0x0B -> return $ RRC_R8 RegE
+    0x0C -> return $ RRC_R8 RegH
+    0x0D -> return $ RRC_R8 RegL
+    0x0E -> return RRC_HL_REF
+    0x0F -> return $ RRC_R8 RegA
     _ -> error $ "Unknown prefixed opcode: " ++ show opcode

@@ -378,3 +378,16 @@ executeInstruction cpu instruction = case instruction of
     let (result, newFlags) = Pure.rlc memVal
     setMemory cpu (fromIntegral hl) result
     setRegister cpu RegF newFlags
+  RRC_R8 reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    let (result, newFlags) = Pure.rrc regVal
+    setRegister cpu reg result
+    setRegister cpu RegF newFlags
+  RRC_HL_REF -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    let (result, newFlags) = Pure.rrc memVal
+    setMemory cpu (fromIntegral hl) result
+    setRegister cpu RegF newFlags

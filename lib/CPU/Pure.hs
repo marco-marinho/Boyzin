@@ -187,6 +187,14 @@ rlc x = (result, newFlags)
     zero = result == 0
     newFlags = flagsToWord8 zero False False (carryOut /= 0)
 
+rrc :: Word8 -> (Word8, Word8)
+rrc x = (result, newFlags)
+  where
+    carryOut = x .&. 0x01
+    result = shiftR x 1 .|. (carryOut `shiftL` 7)
+    zero = result == 0
+    newFlags = flagsToWord8 zero False False (carryOut /= 0)
+
 flagsFromWord8 :: Word8 -> FlagsRegister
 flagsFromWord8 w =
   FlagsRegister ((w .&. 0x80) /= 0) ((w .&. 0x40) /= 0) ((w .&. 0x20) /= 0) ((w .&. 0x10) /= 0)
