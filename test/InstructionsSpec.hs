@@ -30,7 +30,7 @@ spec = do
           compareProcessorStates (runTestEntry testEntry) (final testEntry) index
 
   describe "CPU Tests - CB Prefix" $ do
-    forM_ [0x00 .. 0x0F] $ \opcode -> do
+    forM_ [0x00 .. 0xFF] $ \opcode -> do
       testEntries <- runIO $ loadTestDataPrefixed opcode
 
       it (printf "0xcb%02x" opcode) $ do

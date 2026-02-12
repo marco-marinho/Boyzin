@@ -391,3 +391,120 @@ executeInstruction cpu instruction = case instruction of
     let (result, newFlags) = Pure.rrc memVal
     setMemory cpu (fromIntegral hl) result
     setRegister cpu RegF newFlags
+  RL_R8 reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    currCarry <- readCarryFlag cpu
+    let (result, newFlags) = Pure.rl regVal currCarry
+    setRegister cpu reg result
+    setRegister cpu RegF newFlags
+  RL_HL_REF -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    currCarry <- readCarryFlag cpu
+    let (result, newFlags) = Pure.rl memVal currCarry
+    setMemory cpu (fromIntegral hl) result
+    setRegister cpu RegF newFlags
+  RR_R8 reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    currCarry <- readCarryFlag cpu
+    let (result, newFlags) = Pure.rr regVal currCarry
+    setRegister cpu reg result
+    setRegister cpu RegF newFlags
+  RR_HL_REF -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    currCarry <- readCarryFlag cpu
+    let (result, newFlags) = Pure.rr memVal currCarry
+    setMemory cpu (fromIntegral hl) result
+    setRegister cpu RegF newFlags
+  SLA_R8 reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    let (result, newFlags) = Pure.sla regVal
+    setRegister cpu reg result
+    setRegister cpu RegF newFlags
+  SLA_HL_REF -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    let (result, newFlags) = Pure.sla memVal
+    setMemory cpu (fromIntegral hl) result
+    setRegister cpu RegF newFlags
+  SRA_R8 reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    let (result, newFlags) = Pure.sra regVal
+    setRegister cpu reg result
+    setRegister cpu RegF newFlags
+  SRA_HL_REF -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    let (result, newFlags) = Pure.sra memVal
+    setMemory cpu (fromIntegral hl) result
+    setRegister cpu RegF newFlags
+  SWAP_R8 reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    let (result, newFlags) = Pure.swap regVal
+    setRegister cpu reg result
+    setRegister cpu RegF newFlags
+  SWAP_HL_REF -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    let (result, newFlags) = Pure.swap memVal
+    setMemory cpu (fromIntegral hl) result
+    setRegister cpu RegF newFlags
+  SRL_R8 reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    let (result, newFlags) = Pure.srl regVal
+    setRegister cpu reg result
+    setRegister cpu RegF newFlags
+  SRL_HL_REF -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    let (result, newFlags) = Pure.srl memVal
+    setMemory cpu (fromIntegral hl) result
+    setRegister cpu RegF newFlags
+  BIT_U3_R8 bit reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    currCarry <- readCarryFlag cpu
+    let newFlags = Pure.bit regVal currCarry bit
+    setRegister cpu RegF newFlags
+  BIT_U3_HL_REF bit -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    currCarry <- readCarryFlag cpu
+    let newFlags = Pure.bit memVal currCarry bit
+    setRegister cpu RegF newFlags
+  RES_U3_R8 bit reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    let result = Pure.res regVal bit
+    setRegister cpu reg result
+  RES_U3_HL_REF bit -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    let result = Pure.res memVal bit
+    setMemory cpu (fromIntegral hl) result
+  SET_U3_R8 bit reg -> do
+    doubleIncPC cpu
+    regVal <- readRegister cpu reg
+    let result = Pure.set regVal bit
+    setRegister cpu reg result
+  SET_U3_HL_REF bit -> do
+    doubleIncPC cpu
+    hl <- readPair cpu RegHL
+    memVal <- readMemory cpu (fromIntegral hl)
+    let result = Pure.set memVal bit
+    setMemory cpu (fromIntegral hl) result

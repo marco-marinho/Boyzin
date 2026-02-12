@@ -8,6 +8,7 @@ import Control.Monad.ST
 import Data.Aeson
 import Data.ByteString.Lazy qualified as B
 import Data.Text qualified as T
+import Data.Word (Word16)
 import GHC.Generics
 import Text.Printf (printf)
 import Types qualified as Ty
@@ -23,7 +24,7 @@ data ProcessorState = ProcessorState
     f :: Int,
     h :: Int,
     l :: Int,
-    ram :: [(Int, Int)]
+    ram :: [(Word16, Int)]
   }
   deriving (Show, Generic, Eq)
 
@@ -43,7 +44,7 @@ instance ToJSON TestEntry
 
 instance FromJSON TestEntry
 
-cpuToProcessorState :: Ty.Cpu -> [Int] -> IO ProcessorState
+cpuToProcessorState :: Ty.Cpu -> [Word16] -> IO ProcessorState
 cpuToProcessorState cpu ramAddresses = do
   (ProcessorState . fromIntegral <$> readPC cpu)
     <*> (fromIntegral <$> readSP cpu)

@@ -76,3 +76,21 @@ data Instruction
   | RLC_HL_REF
   | RRC_R8 Registers
   | RRC_HL_REF
+  | RL_R8 Registers
+  | RL_HL_REF
+  | RR_R8 Registers
+  | RR_HL_REF
+  | SLA_R8 Registers
+  | SLA_HL_REF
+  | SRA_R8 Registers
+  | SRA_HL_REF
+  | SWAP_R8 Registers
+  | SWAP_HL_REF
+  | SRL_R8 Registers
+  | SRL_HL_REF
+  | BIT_U3_R8 Int Registers
+  | BIT_U3_HL_REF Int
+  | RES_U3_R8 Int Registers
+  | RES_U3_HL_REF Int
+  | SET_U3_R8 Int Registers
+  | SET_U3_HL_REF Int

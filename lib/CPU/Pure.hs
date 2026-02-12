@@ -195,6 +195,76 @@ rrc x = (result, newFlags)
     zero = result == 0
     newFlags = flagsToWord8 zero False False (carryOut /= 0)
 
+rl :: Word8 -> Word8 -> (Word8, Word8)
+rl x carryIn = (result, newFlags)
+  where
+    carryOut = shiftR x 7
+    result = shiftL x 1 .|. carryIn
+    zero = result == 0
+    newFlags = flagsToWord8 zero False False (carryOut /= 0)
+
+rr :: Word8 -> Word8 -> (Word8, Word8)
+rr x carryIn = (result, newFlags)
+  where
+    carryOut = x .&. 0x01
+    result = shiftR x 1 .|. (carryIn `shiftL` 7)
+    zero = result == 0
+    newFlags = flagsToWord8 zero False False (carryOut /= 0)
+
+sla :: Word8 -> (Word8, Word8)
+sla x = (result, newFlags)
+  where
+    carryOut = shiftR x 7
+    result = shiftL x 1
+    zero = result == 0
+    newFlags = flagsToWord8 zero False False (carryOut /= 0)
+
+sra :: Word8 -> (Word8, Word8)
+sra x = (result, newFlags)
+  where
+    carryOut = x .&. 0x01
+    bit7 = x .&. 0x80
+    result = shiftR x 1 .|. bit7
+    zero = result == 0
+    newFlags = flagsToWord8 zero False False (carryOut /= 0)
+
+swap :: Word8 -> (Word8, Word8)
+swap x = (result, newFlags)
+  where
+    low = x .&. 0x0F
+    high = x .&. 0xF0
+    result = shiftL low 4 .|. shiftR high 4
+    zero = result == 0
+    newFlags = flagsToWord8 zero False False False
+
+srl :: Word8 -> (Word8, Word8)
+srl x = (result, newFlags)
+  where
+    carryOut = x .&. 0x01
+    result = shiftR x 1
+    zero = result == 0
+    newFlags = flagsToWord8 zero False False (carryOut /= 0)
+
+bit :: Word8 -> Word8 -> Int -> Word8
+bit x carry bitPos = newFlags
+  where
+    bitSet = shiftR x bitPos .&. 0x01
+    zero = bitSet == 0
+    ocarry = carry /= 0
+    newFlags = flagsToWord8 zero False True ocarry
+
+res :: Word8 -> Int -> Word8
+res x bitPos = result
+  where
+    mask = complement (1 `shiftL` bitPos)
+    result = x .&. mask
+
+set :: Word8 -> Int -> Word8
+set x bitPos = result
+  where
+    mask = 1 `shiftL` bitPos
+    result = x .|. mask
+
 flagsFromWord8 :: Word8 -> FlagsRegister
 flagsFromWord8 w =
   FlagsRegister ((w .&. 0x80) /= 0) ((w .&. 0x40) /= 0) ((w .&. 0x20) /= 0) ((w .&. 0x10) /= 0)

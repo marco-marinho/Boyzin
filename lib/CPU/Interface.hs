@@ -50,8 +50,8 @@ readZeroFlag cpu = (`shiftR` 7) . (.&. 0x80) <$> readRegister cpu RegF
 readCarryFlag :: Cpu -> IO Word8
 readCarryFlag cpu = (`shiftR` 4) . (.&. 0x10) <$> readRegister cpu RegF
 
-readMemory :: Cpu -> Int -> IO Word8
-readMemory cpu = MV.unsafeRead (cpu ^. memory)
+readMemory :: Cpu -> Word16 -> IO Word8
+readMemory cpu addr = MV.unsafeRead (cpu ^. memory) (fromIntegral addr)
 
 readPair :: Cpu -> Registers16 -> IO Word16
 readPair cpu reg16 = case reg16 of
@@ -100,8 +100,8 @@ setSP cpu = writeIORef (cpu ^. sp)
 setPC :: Cpu -> Word16 -> IO ()
 setPC cpu = writeIORef (cpu ^. pc)
 
-setMemory :: Cpu -> Int -> Word8 -> IO ()
-setMemory cpu = MV.unsafeWrite (cpu ^. memory)
+setMemory :: Cpu -> Word16 -> Word8 -> IO ()
+setMemory cpu addr = MV.unsafeWrite (cpu ^. memory) (fromIntegral addr)
 
 setHalted :: Cpu -> Bool -> IO ()
 setHalted cpu = writeIORef (cpu ^. halted)
