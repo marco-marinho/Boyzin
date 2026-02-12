@@ -21,6 +21,7 @@ import CPU.Interface
     readZeroFlag,
     ret,
     setHalted,
+    setIME,
     setMemory,
     setPC,
     setPair,
@@ -31,6 +32,7 @@ import CPU.Interface
 import CPU.Pure qualified as Pure
 import Control.Monad (when)
 import Data.Bits (shiftR, (.&.))
+import Data.Word (Word16)
 import Types (Cpu, Registers (..), Registers16 (..))
 
 executeInstruction :: Cpu -> Instruction -> IO ()
@@ -48,7 +50,7 @@ executeInstruction cpu instruction = case instruction of
     setRegister cpu RegA result
     setRegister cpu RegF flags
   ADC_A_N8 val -> do
-    incPC cpu
+    doubleIncPC cpu
     (result, flags) <- Pure.addc <$> readRegister cpu RegA <*> pure val <*> readCarryFlag cpu
     setRegister cpu RegA result
     setRegister cpu RegF flags
@@ -89,6 +91,11 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.sub <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
+  SUB_A_N8 value -> do
+    doubleIncPC cpu
+    (result, flags) <- Pure.sub <$> readRegister cpu RegA <*> pure value
+    setRegister cpu RegA result
+    setRegister cpu RegF flags
   SUB_A_HL_REF -> do
     incPC cpu
     hl <- readPair cpu RegHL
@@ -99,6 +106,11 @@ executeInstruction cpu instruction = case instruction of
   SBC_A_R8 target -> do
     incPC cpu
     (result, flags) <- Pure.subc <$> readRegister cpu RegA <*> readRegister cpu target <*> readCarryFlag cpu
+    setRegister cpu RegA result
+    setRegister cpu RegF flags
+  SBC_A_N8 value -> do
+    doubleIncPC cpu
+    (result, flags) <- Pure.subc <$> readRegister cpu RegA <*> pure value <*> readCarryFlag cpu
     setRegister cpu RegA result
     setRegister cpu RegF flags
   SBC_A_HL_REF -> do
@@ -508,3 +520,55 @@ executeInstruction cpu instruction = case instruction of
     memVal <- readMemory cpu (fromIntegral hl)
     let result = Pure.set memVal bit
     setMemory cpu (fromIntegral hl) result
+  CALL_Z_N16 addr -> do
+    tripleIncPC cpu
+    zeroFlag <- readZeroFlag cpu
+    when (zeroFlag /= 0) $ do
+      call cpu addr
+  CALL_N16 addr -> do
+    tripleIncPC cpu
+    call cpu addr
+  RET_NC -> do
+    incPC cpu
+    carryFlag <- readCarryFlag cpu
+    when (carryFlag == 0) $ do
+      ret cpu
+  JP_NC_N16 addr -> do
+    tripleIncPC cpu
+    carryFlag <- readCarryFlag cpu
+    when (carryFlag == 0) $ do
+      setPC cpu addr
+  CALL_NC_N16 addr -> do
+    tripleIncPC cpu
+    carryFlag <- readCarryFlag cpu
+    when (carryFlag == 0) $ do
+      call cpu addr
+  RET_C -> do
+    incPC cpu
+    carryFlag <- readCarryFlag cpu
+    when (carryFlag /= 0) $ do
+      ret cpu
+  RETI -> do
+    incPC cpu
+    setIME cpu
+    ret cpu
+  JP_C_N16 addr -> do
+    tripleIncPC cpu
+    carryFlag <- readCarryFlag cpu
+    when (carryFlag /= 0) $ do
+      setPC cpu addr
+  CALL_C_N16 addr -> do
+    tripleIncPC cpu
+    carryFlag <- readCarryFlag cpu
+    when (carryFlag /= 0) $ do
+      call cpu addr
+  LDH_N8_REF_A offset -> do
+    doubleIncPC cpu
+    aVal <- readRegister cpu RegA
+    let addr = (0xFF00 :: Word16) + fromIntegral offset
+    setMemory cpu addr aVal
+  LDH_C_A c -> do
+    doubleIncPC cpu
+    aVal <- readRegister cpu RegA
+    let addr = (0xFF00 :: Word16) + fromIntegral c
+    setMemory cpu addr aVal

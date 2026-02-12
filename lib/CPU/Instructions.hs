@@ -16,7 +16,9 @@ data Instruction
   | ADD_SP_E8 Int8
   | SUB_A_R8 Registers
   | SUB_A_HL_REF
+  | SUB_A_N8 Word8
   | SBC_A_R8 Registers
+  | SBC_A_N8 Word8
   | SBC_A_HL_REF
   | AND_A_R8 Registers
   | AND_A_HL_REF
@@ -94,3 +96,14 @@ data Instruction
   | RES_U3_HL_REF Int
   | SET_U3_R8 Int Registers
   | SET_U3_HL_REF Int
+  | CALL_Z_N16 Word16
+  | CALL_N16 Word16
+  | RET_NC
+  | JP_NC_N16 Word16
+  | CALL_NC_N16 Word16
+  | RET_C
+  | RETI
+  | JP_C_N16 Word16
+  | CALL_C_N16 Word16
+  | LDH_N8_REF_A Word8
+  | LDH_C_A Word8

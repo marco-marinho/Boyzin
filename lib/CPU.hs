@@ -13,7 +13,7 @@ fetchDecodeExecute !cpu = do
 
 makeCPU :: IO Cpu
 makeCPU = do
-  initRegisters <- MV.replicate 8 0
+  initRegisters <- MV.replicate 10 0
   initMem <- MV.replicate 65536 0
   initPC <- newIORef 0
   initSP <- newIORef 0

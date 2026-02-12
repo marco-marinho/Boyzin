@@ -7,7 +7,7 @@ import Data.Vector.Unboxed.Mutable qualified as MV
 import Data.Word (Word16, Word8)
 import Lens.Micro.TH (makeLenses)
 
-data Registers = RegA | RegB | RegC | RegD | RegE | RegF | RegH | RegL
+data Registers = RegA | RegB | RegC | RegD | RegE | RegF | RegH | RegL | RegIME | RegIE
   deriving (Show, Eq, Enum, Bounded)
 
 data Registers16 = RegBC | RegDE | RegHL | RegSP

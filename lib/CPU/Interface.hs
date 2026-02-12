@@ -100,6 +100,10 @@ setSP cpu = writeIORef (cpu ^. sp)
 setPC :: Cpu -> Word16 -> IO ()
 setPC cpu = writeIORef (cpu ^. pc)
 
+setIME :: Cpu -> IO ()
+setIME cpu = do
+  setRegister cpu RegIME 1
+
 setMemory :: Cpu -> Word16 -> Word8 -> IO ()
 setMemory cpu addr = MV.unsafeWrite (cpu ^. memory) (fromIntegral addr)
 

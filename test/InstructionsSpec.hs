@@ -12,7 +12,7 @@ import Text.Printf (printf)
 main :: IO ()
 main = hspec spec
 
-compareProcessorStates :: IO ProcessorState -> ProcessorState -> Int -> Expectation
+compareProcessorStates :: IO ProcessorStateAfter -> ProcessorStateAfter -> Int -> Expectation
 compareProcessorStates expected actual index = do
   expectedState <- expected
   if expectedState == actual
@@ -22,7 +22,7 @@ compareProcessorStates expected actual index = do
 spec :: Spec
 spec = do
   describe "CPU Tests" $ do
-    forM_ [0x00 .. 0xCA] $ \opcode -> do
+    forM_ ([0x00 .. 0xCA] ++ [0xCC .. 0xD2] ++ [0xD4 .. 0xDA] ++ [0xDC] ++ [0xDE .. 0xE2]) $ \opcode -> do
       testEntries <- runIO $ loadTestData opcode
 
       it (printf "0x%02x" opcode) $ do

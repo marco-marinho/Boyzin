@@ -271,6 +271,51 @@ decodeInstruction cpu = do
       address <- read16Bits cpu (pcValue + 1)
       return $ JP_Z_N16 address
     0xCB -> decodePrefixed cpu
+    0xCC -> do
+      address <- read16Bits cpu (pcValue + 1)
+      return $ CALL_Z_N16 address
+    0xCD -> do
+      address <- read16Bits cpu (pcValue + 1)
+      return $ CALL_N16 address
+    0xCE -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ ADC_A_N8 value
+    0xCF -> return $ RST 0x08
+    0xD0 -> return RET_NC
+    0xD1 -> return $ POP_R16 RegDE
+    0xD2 -> do
+      address <- read16Bits cpu (pcValue + 1)
+      return $ JP_NC_N16 address
+    0xD3 -> error "Invalid opcode: 0xD3"
+    0xD4 -> do
+      address <- read16Bits cpu (pcValue + 1)
+      return $ CALL_NC_N16 address
+    0xD5 -> return $ PUSH_R16 RegDE
+    0xD6 -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ SUB_A_N8 value
+    0xD7 -> return $ RST 0x10
+    0xD8 -> return RET_C
+    0xD9 -> return RETI
+    0xDA -> do
+      address <- read16Bits cpu (pcValue + 1)
+      return $ JP_C_N16 address
+    0xDB -> error "Invalid opcode: 0xDB"
+    0xDC -> do
+      address <- read16Bits cpu (pcValue + 1)
+      return $ CALL_C_N16 address
+    0xDD -> error "Invalid opcode: 0xDD"
+    0xDE -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ SBC_A_N8 value
+    0xDF -> return $ RST 0x18
+    0xE0 -> do
+      offset <- readMemory cpu (pcValue + 1)
+      return $ LDH_N8_REF_A offset
+    0xE1 -> return $ POP_R16 RegHL
+    0xE2 -> do
+      c <- readMemory cpu (pcValue + 1)
+      return $ LDH_C_A c
     _ -> error $ "Unknown opcode: " ++ show opcode
 
 decodePrefixed :: Cpu -> IO Instruction

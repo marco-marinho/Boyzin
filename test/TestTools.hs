@@ -13,40 +13,58 @@ import GHC.Generics
 import Text.Printf (printf)
 import Types qualified as Ty
 
-data ProcessorState = ProcessorState
-  { pc :: Int,
-    sp :: Int,
-    a :: Int,
-    b :: Int,
-    c :: Int,
-    d :: Int,
-    e :: Int,
-    f :: Int,
-    h :: Int,
-    l :: Int,
-    ram :: [(Word16, Int)]
+data ProcessorStateBefore = ProcessorStateBefore
+  { bpc :: Int,
+    bsp :: Int,
+    ba :: Int,
+    bb :: Int,
+    bc :: Int,
+    bd :: Int,
+    be :: Int,
+    bf :: Int,
+    bh :: Int,
+    bl :: Int,
+    bime :: Int,
+    bie :: Int,
+    bram :: [(Word16, Int)]
   }
   deriving (Show, Generic, Eq)
 
-instance ToJSON ProcessorState
+instance FromJSON ProcessorStateBefore where
+  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
-instance FromJSON ProcessorState
+data ProcessorStateAfter = ProcessorStateAfter
+  { apc :: Int,
+    asp :: Int,
+    aa :: Int,
+    ab :: Int,
+    ac :: Int,
+    ad :: Int,
+    ae :: Int,
+    af :: Int,
+    ah :: Int,
+    al :: Int,
+    aime :: Int,
+    aram :: [(Word16, Int)]
+  }
+  deriving (Show, Generic, Eq)
+
+instance FromJSON ProcessorStateAfter where
+  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
 data TestEntry = TestEntry
   { name :: T.Text,
-    initial :: ProcessorState,
-    final :: ProcessorState,
+    initial :: ProcessorStateBefore,
+    final :: ProcessorStateAfter,
     cycles :: [(Int, Int, String)]
   }
   deriving (Show, Generic)
 
-instance ToJSON TestEntry
-
 instance FromJSON TestEntry
 
-cpuToProcessorState :: Ty.Cpu -> [Word16] -> IO ProcessorState
+cpuToProcessorState :: Ty.Cpu -> [Word16] -> IO ProcessorStateAfter
 cpuToProcessorState cpu ramAddresses = do
-  (ProcessorState . fromIntegral <$> readPC cpu)
+  (ProcessorStateAfter . fromIntegral <$> readPC cpu)
     <*> (fromIntegral <$> readSP cpu)
     <*> (fromIntegral <$> readRegister cpu Ty.RegA)
     <*> (fromIntegral <$> readRegister cpu Ty.RegB)
@@ -56,46 +74,50 @@ cpuToProcessorState cpu ramAddresses = do
     <*> (fromIntegral <$> readRegister cpu Ty.RegF)
     <*> (fromIntegral <$> readRegister cpu Ty.RegH)
     <*> (fromIntegral <$> readRegister cpu Ty.RegL)
+    <*> (fromIntegral <$> readRegister cpu Ty.RegIME)
     <*> mapM (\addr -> (fromIntegral addr,) . fromIntegral <$> readMemory cpu addr) ramAddresses
 
-cpuFromProcessorState :: ProcessorState -> Ty.Cpu -> IO ()
-cpuFromProcessorState ProcessorState {pc, sp, a, b, c, d, e, f, h, l, ram} cpu = do
-  setPC cpu (fromIntegral pc)
-  setSP cpu (fromIntegral sp)
-  setRegister cpu Ty.RegA (fromIntegral a)
-  setRegister cpu Ty.RegB (fromIntegral b)
-  setRegister cpu Ty.RegC (fromIntegral c)
-  setRegister cpu Ty.RegD (fromIntegral d)
-  setRegister cpu Ty.RegE (fromIntegral e)
-  setRegister cpu Ty.RegF (fromIntegral f)
-  setRegister cpu Ty.RegH (fromIntegral h)
-  setRegister cpu Ty.RegL (fromIntegral l)
-  mapM_ (\(addr, val) -> setMemory cpu (fromIntegral addr) (fromIntegral val)) ram
+cpuFromProcessorState :: ProcessorStateBefore -> Ty.Cpu -> IO ()
+cpuFromProcessorState ProcessorStateBefore {bpc, bsp, ba, bb, bc, bd, be, bf, bh, bl, bime, bie, bram} cpu = do
+  setPC cpu (fromIntegral bpc)
+  setSP cpu (fromIntegral bsp)
+  setRegister cpu Ty.RegA (fromIntegral ba)
+  setRegister cpu Ty.RegB (fromIntegral bb)
+  setRegister cpu Ty.RegC (fromIntegral bc)
+  setRegister cpu Ty.RegD (fromIntegral bd)
+  setRegister cpu Ty.RegE (fromIntegral be)
+  setRegister cpu Ty.RegF (fromIntegral bf)
+  setRegister cpu Ty.RegH (fromIntegral bh)
+  setRegister cpu Ty.RegL (fromIntegral bl)
+  setRegister cpu Ty.RegIME (fromIntegral bime)
+  setRegister cpu Ty.RegIE (fromIntegral bie)
+  mapM_ (\(addr, val) -> setMemory cpu (fromIntegral addr) (fromIntegral val)) bram
 
-runTestEntry :: TestEntry -> IO ProcessorState
+runTestEntry :: TestEntry -> IO ProcessorStateAfter
 runTestEntry TestEntry {initial, final, cycles} = do
   cpu <- makeCPU
   cpuFromProcessorState initial cpu
   fetchDecodeExecute cpu
-  let addressesToCheck = map fst (ram final)
+  let addressesToCheck = map fst (aram final)
   cpuToProcessorState cpu addressesToCheck
 
-formatDiff :: ProcessorState -> ProcessorState -> Int -> String
+formatDiff :: ProcessorStateAfter -> ProcessorStateAfter -> Int -> String
 formatDiff expected actual index =
   unlines $
     ("State Mismatch at entry " ++ show index ++ ":")
       : concat
-        [ ["  PC: " ++ diff (pc expected) (pc actual) | pc expected /= pc actual],
-          ["  SP: " ++ diff (sp expected) (sp actual) | sp expected /= sp actual],
-          ["  A:  " ++ diff (a expected) (a actual) | a expected /= a actual],
-          ["  B:  " ++ diff (b expected) (b actual) | b expected /= b actual],
-          ["  C:  " ++ diff (c expected) (c actual) | c expected /= c actual],
-          ["  D:  " ++ diff (d expected) (d actual) | d expected /= d actual],
-          ["  E:  " ++ diff (e expected) (e actual) | e expected /= e actual],
-          ["  F:  " ++ diff (f expected) (f actual) | f expected /= f actual],
-          ["  H:  " ++ diff (h expected) (h actual) | h expected /= h actual],
-          ["  L:  " ++ diff (l expected) (l actual) | l expected /= l actual],
-          ["  RAM: " ++ show (ram expected) ++ " vs " ++ show (ram actual) | ram expected /= ram actual]
+        [ ["  PC: " ++ diff (apc expected) (apc actual) | apc expected /= apc actual],
+          ["  SP: " ++ diff (asp expected) (asp actual) | asp expected /= asp actual],
+          ["  A:  " ++ diff (aa expected) (aa actual) | aa expected /= aa actual],
+          ["  B:  " ++ diff (ab expected) (ab actual) | ab expected /= ab actual],
+          ["  C:  " ++ diff (ac expected) (ac actual) | ac expected /= ac actual],
+          ["  D:  " ++ diff (ad expected) (ad actual) | ad expected /= ad actual],
+          ["  E:  " ++ diff (ae expected) (ae actual) | ae expected /= ae actual],
+          ["  F:  " ++ diff (af expected) (af actual) | af expected /= af actual],
+          ["  H:  " ++ diff (ah expected) (ah actual) | ah expected /= ah actual],
+          ["  L:  " ++ diff (al expected) (al actual) | al expected /= al actual],
+          ["  IME: " ++ diff (aime expected) (aime actual) | aime expected /= aime actual],
+          ["  RAM: " ++ show (aram expected) ++ " vs " ++ show (aram actual) | aram expected /= aram actual]
         ]
   where
     diff = printf "Expected 0x%02x, Got 0x%02x"
