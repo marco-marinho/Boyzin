@@ -204,11 +204,11 @@ push cpu reg16 = do
   addrL <- readSP cpu
   setMemory cpu (fromIntegral addrL) (fromIntegral (value .&. 0xFF))
 
-setAboutToEI :: Cpu -> Bool -> IO ()
-setAboutToEI cpu = writeIORef (cpu ^. aboutToEI)
+setPendingEI :: Cpu -> Bool -> IO ()
+setPendingEI cpu = writeIORef (cpu ^. pendingEI)
 
-resetAboutToEI :: Cpu -> IO ()
-resetAboutToEI cpu = writeIORef (cpu ^. aboutToEI) False
+resetPendingEI :: Cpu -> IO ()
+resetPendingEI cpu = writeIORef (cpu ^. pendingEI) False
 
-readAboutToEI :: Cpu -> IO Bool
-readAboutToEI cpu = readIORef (cpu ^. aboutToEI)
+isPendingEI :: Cpu -> IO Bool
+isPendingEI cpu = readIORef (cpu ^. pendingEI)

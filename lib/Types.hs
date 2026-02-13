@@ -19,7 +19,7 @@ data Cpu = Cpu
     _pc :: !(IORef Word16),
     _sp :: !(IORef Word16),
     _halted :: !(IORef Bool),
-    _aboutToEI :: !(IORef Bool)
+    _pendingEI :: !(IORef Bool)
   }
 
 data FlagsRegister = FlagsRegister

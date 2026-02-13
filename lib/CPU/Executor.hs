@@ -21,12 +21,12 @@ import CPU.Interface
     readZeroFlag,
     resetIME,
     ret,
-    setAboutToEI,
     setHalted,
     setIME,
     setMemory,
     setPC,
     setPair,
+    setPendingEI,
     setRegister,
     setSP,
     tripleIncPC,
@@ -631,4 +631,4 @@ executeInstruction cpu instruction = case instruction of
     setRegister cpu RegA val
   EI -> do
     incPC cpu
-    setAboutToEI cpu True
+    setPendingEI cpu True
