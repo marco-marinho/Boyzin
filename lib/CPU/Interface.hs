@@ -1,6 +1,7 @@
 module CPU.Interface where
 
 import CPU.Pure qualified as Pure
+import Control.Monad (when)
 import Data.Bits
 import Data.IORef
 import Data.Int (Int16, Int32)
@@ -55,6 +56,7 @@ readMemory cpu addr = MV.unsafeRead (cpu ^. memory) (fromIntegral addr)
 
 readPair :: Cpu -> Registers16 -> IO Word16
 readPair cpu reg16 = case reg16 of
+  RegAF -> readPair' cpu RegA RegF
   RegBC -> readPair' cpu RegB RegC
   RegDE -> readPair' cpu RegD RegE
   RegHL -> readPair' cpu RegH RegL
@@ -82,6 +84,7 @@ setRegister cpu reg = MV.unsafeWrite (cpu ^. registers) (regIdx reg)
 
 setPair :: Cpu -> Registers16 -> Word16 -> IO ()
 setPair cpu reg16 val = case reg16 of
+  RegAF -> setPair' cpu RegA RegF val
   RegBC -> setPair' cpu RegB RegC val
   RegDE -> setPair' cpu RegD RegE val
   RegHL -> setPair' cpu RegH RegL val
@@ -103,6 +106,10 @@ setPC cpu = writeIORef (cpu ^. pc)
 setIME :: Cpu -> IO ()
 setIME cpu = do
   setRegister cpu RegIME 1
+
+resetIME :: Cpu -> IO ()
+resetIME cpu = do
+  setRegister cpu RegIME 0
 
 setMemory :: Cpu -> Word16 -> Word8 -> IO ()
 setMemory cpu addr = MV.unsafeWrite (cpu ^. memory) (fromIntegral addr)
@@ -168,6 +175,13 @@ pop cpu reg16 = do
   incSP cpu
   let value = (fromIntegral high `shiftL` 8) .|. fromIntegral low
   setPair cpu reg16 value
+  when (reg16 == RegAF) $ do
+    let newZero = shiftR low 7 .&. 0x01
+        newN = shiftR low 6 .&. 0x01
+        newH = shiftR low 5 .&. 0x01
+        newC = shiftR low 4 .&. 0x01
+        newFlags = Pure.flagsToWord8 (newZero /= 0) (newN /= 0) (newH /= 0) (newC /= 0)
+    setRegister cpu RegF newFlags
 
 call :: Cpu -> Word16 -> IO ()
 call cpu addr = do
@@ -189,3 +203,12 @@ push cpu reg16 = do
   decSP cpu
   addrL <- readSP cpu
   setMemory cpu (fromIntegral addrL) (fromIntegral (value .&. 0xFF))
+
+setAboutToEI :: Cpu -> Bool -> IO ()
+setAboutToEI cpu = writeIORef (cpu ^. aboutToEI)
+
+resetAboutToEI :: Cpu -> IO ()
+resetAboutToEI cpu = writeIORef (cpu ^. aboutToEI) False
+
+readAboutToEI :: Cpu -> IO Bool
+readAboutToEI cpu = readIORef (cpu ^. aboutToEI)

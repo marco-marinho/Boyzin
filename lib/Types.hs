@@ -10,7 +10,7 @@ import Lens.Micro.TH (makeLenses)
 data Registers = RegA | RegB | RegC | RegD | RegE | RegF | RegH | RegL | RegIME | RegIE
   deriving (Show, Eq, Enum, Bounded)
 
-data Registers16 = RegBC | RegDE | RegHL | RegSP
+data Registers16 = RegAF | RegBC | RegDE | RegHL | RegSP
   deriving (Show, Eq)
 
 data Cpu = Cpu
@@ -18,7 +18,8 @@ data Cpu = Cpu
     _memory :: !(MV.IOVector Word8),
     _pc :: !(IORef Word16),
     _sp :: !(IORef Word16),
-    _halted :: !(IORef Bool)
+    _halted :: !(IORef Bool),
+    _aboutToEI :: !(IORef Bool)
   }
 
 data FlagsRegister = FlagsRegister

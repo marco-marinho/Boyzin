@@ -19,7 +19,9 @@ import CPU.Interface
     readRegister,
     readSP,
     readZeroFlag,
+    resetIME,
     ret,
+    setAboutToEI,
     setHalted,
     setIME,
     setMemory,
@@ -82,7 +84,7 @@ executeInstruction cpu instruction = case instruction of
     setPair cpu RegHL result
     setRegister cpu RegF flags
   ADD_SP_E8 val -> do
-    incPC cpu
+    doubleIncPC cpu
     (result, flags) <- Pure.addSigned <$> readSP cpu <*> pure val
     setSP cpu result
     setRegister cpu RegF flags
@@ -125,6 +127,11 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.and <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
+  AND_A_N8 value -> do
+    doubleIncPC cpu
+    (result, flags) <- Pure.and <$> readRegister cpu RegA <*> pure value
+    setRegister cpu RegA result
+    setRegister cpu RegF flags
   AND_A_HL_REF -> do
     incPC cpu
     hl <- readPair cpu RegHL
@@ -135,6 +142,11 @@ executeInstruction cpu instruction = case instruction of
   XOR_A_R8 target -> do
     incPC cpu
     (result, flags) <- Pure.iXor <$> readRegister cpu RegA <*> readRegister cpu target
+    setRegister cpu RegA result
+    setRegister cpu RegF flags
+  XOR_A_N8 value -> do
+    doubleIncPC cpu
+    (result, flags) <- Pure.iXor <$> readRegister cpu RegA <*> pure value
     setRegister cpu RegA result
     setRegister cpu RegF flags
   XOR_A_HL_REF -> do
@@ -149,6 +161,11 @@ executeInstruction cpu instruction = case instruction of
     (result, flags) <- Pure.or <$> readRegister cpu RegA <*> readRegister cpu target
     setRegister cpu RegA result
     setRegister cpu RegF flags
+  OR_A_N8 value -> do
+    doubleIncPC cpu
+    (result, flags) <- Pure.or <$> readRegister cpu RegA <*> pure value
+    setRegister cpu RegA result
+    setRegister cpu RegF flags
   OR_A_HL_REF -> do
     incPC cpu
     hl <- readPair cpu RegHL
@@ -159,6 +176,10 @@ executeInstruction cpu instruction = case instruction of
   CP_A_R8 target -> do
     incPC cpu
     (_, flags) <- Pure.sub <$> readRegister cpu RegA <*> readRegister cpu target
+    setRegister cpu RegF flags
+  CP_A_N8 value -> do
+    doubleIncPC cpu
+    (_, flags) <- Pure.sub <$> readRegister cpu RegA <*> pure value
     setRegister cpu RegF flags
   CP_A_HL_REF -> do
     incPC cpu
@@ -567,8 +588,47 @@ executeInstruction cpu instruction = case instruction of
     aVal <- readRegister cpu RegA
     let addr = (0xFF00 :: Word16) + fromIntegral offset
     setMemory cpu addr aVal
-  LDH_C_A c -> do
-    doubleIncPC cpu
+  LDH_C_A -> do
+    incPC cpu
     aVal <- readRegister cpu RegA
-    let addr = (0xFF00 :: Word16) + fromIntegral c
+    cVal <- readRegister cpu RegC
+    let addr = (0xFF00 :: Word16) + fromIntegral cVal
     setMemory cpu addr aVal
+  JP_HL -> do
+    incPC cpu
+    hl <- readPair cpu RegHL
+    setPC cpu hl
+  LD_N16_REF_A addr -> do
+    tripleIncPC cpu
+    aVal <- readRegister cpu RegA
+    setMemory cpu (fromIntegral addr) aVal
+  LDH_A_N8_REF offset -> do
+    doubleIncPC cpu
+    let addr = (0xFF00 :: Word16) + fromIntegral offset
+    val <- readMemory cpu addr
+    setRegister cpu RegA val
+  LDH_A_C -> do
+    incPC cpu
+    cVal <- readRegister cpu RegC
+    let addr = (0xFF00 :: Word16) + fromIntegral cVal
+    val <- readMemory cpu addr
+    setRegister cpu RegA val
+  DI -> do
+    incPC cpu
+    resetIME cpu
+  LD_HL_SP_E8 val -> do
+    doubleIncPC cpu
+    (result, flags) <- Pure.addSigned <$> readSP cpu <*> pure val
+    setPair cpu RegHL result
+    setRegister cpu RegF flags
+  LD_SP_HL -> do
+    incPC cpu
+    hl <- readPair cpu RegHL
+    setSP cpu hl
+  LD_A_N16_REF addr -> do
+    tripleIncPC cpu
+    val <- readMemory cpu (fromIntegral addr)
+    setRegister cpu RegA val
+  EI -> do
+    incPC cpu
+    setAboutToEI cpu True

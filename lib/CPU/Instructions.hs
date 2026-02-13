@@ -21,12 +21,16 @@ data Instruction
   | SBC_A_N8 Word8
   | SBC_A_HL_REF
   | AND_A_R8 Registers
+  | AND_A_N8 Word8
   | AND_A_HL_REF
   | XOR_A_R8 Registers
+  | XOR_A_N8 Word8
   | XOR_A_HL_REF
   | OR_A_R8 Registers
+  | OR_A_N8 Word8
   | OR_A_HL_REF
   | CP_A_R8 Registers
+  | CP_A_N8 Word8
   | CP_A_HL_REF
   | LD_R8_R8 Registers Registers
   | LD_R8_HL Registers
@@ -106,4 +110,13 @@ data Instruction
   | JP_C_N16 Word16
   | CALL_C_N16 Word16
   | LDH_N8_REF_A Word8
-  | LDH_C_A Word8
+  | LDH_C_A
+  | JP_HL
+  | LD_N16_REF_A Word16
+  | LDH_A_N8_REF Word8
+  | LDH_A_C
+  | DI
+  | LD_HL_SP_E8 Int8
+  | LD_SP_HL
+  | LD_A_N16_REF Word16
+  | EI

@@ -3,11 +3,12 @@ module CPU.Decoder where
 import CPU.Instructions (Instruction (..))
 import CPU.Interface (readMemory, readPC)
 import Data.Bits (Bits (shiftL, (.|.)))
+import Data.Int (Int8)
 import Data.Word (Word16)
 import Types
   ( Cpu,
     Registers (RegA, RegB, RegC, RegD, RegE, RegH, RegL),
-    Registers16 (RegBC, RegDE, RegHL, RegSP),
+    Registers16 (RegAF, RegBC, RegDE, RegHL, RegSP),
   )
 
 read16Bits :: Cpu -> Word16 -> IO Word16
@@ -313,9 +314,54 @@ decodeInstruction cpu = do
       offset <- readMemory cpu (pcValue + 1)
       return $ LDH_N8_REF_A offset
     0xE1 -> return $ POP_R16 RegHL
-    0xE2 -> do
-      c <- readMemory cpu (pcValue + 1)
-      return $ LDH_C_A c
+    0xE2 -> return LDH_C_A
+    0xE3 -> error "Invalid opcode: 0xE3"
+    0xE4 -> error "Invalid opcode: 0xE4"
+    0xE5 -> return $ PUSH_R16 RegHL
+    0xE6 -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ AND_A_N8 value
+    0xE7 -> return $ RST 0x20
+    0xE8 -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ ADD_SP_E8 (fromIntegral value :: Int8)
+    0xE9 -> return JP_HL
+    0xEA -> do
+      address <- read16Bits cpu (pcValue + 1)
+      return $ LD_N16_REF_A address
+    0xEB -> error "Invalid opcode: 0xEB"
+    0xEC -> error "Invalid opcode: 0xEC"
+    0xED -> error "Invalid opcode: 0xED"
+    0xEE -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ XOR_A_N8 value
+    0xEF -> return $ RST 0x28
+    0xF0 -> do
+      offset <- readMemory cpu (pcValue + 1)
+      return $ LDH_A_N8_REF offset
+    0xF1 -> return $ POP_R16 RegAF
+    0xF2 -> return LDH_A_C
+    0xF3 -> return DI
+    0xF4 -> error "Invalid opcode: 0xF4"
+    0xF5 -> return $ PUSH_R16 RegAF
+    0xF6 -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ OR_A_N8 value
+    0xF7 -> return $ RST 0x30
+    0xF8 -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ LD_HL_SP_E8 (fromIntegral value :: Int8)
+    0xF9 -> return LD_SP_HL
+    0xFA -> do
+      address <- read16Bits cpu (pcValue + 1)
+      return $ LD_A_N16_REF address
+    0xFB -> return EI
+    0xFC -> error "Invalid opcode: 0xFC"
+    0xFD -> error "Invalid opcode: 0xFD"
+    0xFE -> do
+      value <- readMemory cpu (pcValue + 1)
+      return $ CP_A_N8 value
+    0xFF -> return $ RST 0x38
     _ -> error $ "Unknown opcode: " ++ show opcode
 
 decodePrefixed :: Cpu -> IO Instruction

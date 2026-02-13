@@ -37,10 +37,8 @@ addSigned x y = (result, flags)
   where
     offset = fromIntegral y :: Word16
     result = x + offset
-    lowSp = fromIntegral (x .&. 0xFF) :: Word8
-    uE8 = fromIntegral y :: Word8
-    half_carry = isCarryFrom 3 lowSp uE8
-    carry = (fromIntegral lowSp + uE8) > 0xFF
+    half_carry = (x .&. 0x0F) + (offset .&. 0x0F) > 0x0F
+    carry = (x .&. 0xFF) + (offset .&. 0xFF) > 0xFF
     flags = flagsToWord8 False False half_carry carry
 
 add16 :: Word16 -> Word16 -> Word8 -> (Word16, Word8)
